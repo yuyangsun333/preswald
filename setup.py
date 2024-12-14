@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="preswald",                      # Your package name
-    version="0.1.0",                      # Initial version
+    version="0.1.1",                      # Initial version
     author="Amrutha Gujjar",              # Author name
     author_email="amrutha@example.com",   # Author email
     description="A lightweight data workflow SDK.",  # Short description
