@@ -1,7 +1,7 @@
 # Preswald SDK
 
 [![PyPI version](https://badge.fury.io/py/preswald-sdk.svg)](https://pypi.org/project/preswald-sdk/)
-[![Build Status](https://github.com/your-org/preswald-sdk/actions/workflows/build.yml/badge.svg)](https://github.com/your-org/preswald-sdk/actions)
+[![Build Status](https://github.com/your-org/preswald-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/preswald-sdk/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Preswald SDK is an open-source, lightweight framework designed for building and managing data workflows, tailored for small teams, startups, and individual practitioners. It simplifies data ingestion, transformation, visualization, and deployment in a single, cohesive platform.
