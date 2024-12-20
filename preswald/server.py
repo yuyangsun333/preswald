@@ -1,84 +1,74 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 import uvicorn
 import os
 
-# Initialize FastAPI application
+# Initialize FastAPI app
 app = FastAPI()
 
-# Configure Jinja2 environment for templates
+# Configure Jinja2 for template rendering
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
 
-# Mount static assets (e.g., CSS, JS)
-STATIC_DIR = os.path.join(BASE_DIR, "assets")
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
 
 @app.get("/", response_class=HTMLResponse)
-async def render_app():
+async def render_home():
     """
-    Render the main Preswald app.
-
-    Returns:
-        HTMLResponse: Rendered HTML content.
+    Render the homepage using base.html and inject custom content.
     """
     try:
-        # Dynamically import the user script
-        from user_script import render  # User-defined `render` function
-        content = render()
-    except ImportError as e:
-        # Fallback if user script is missing or incorrect
-        content = f"<h1>Error loading user script</h1><p>{e}</p>"
+        # Load base.html and pass variables to the template
+        template = env.get_template("base.html")
+        html_content = template.render(
+            title="Preswald App",
+            theme={
+                "font": {"family": "Arial, sans-serif", "size": "16px"},
+                "color": {
+                    "primary": "#4CAF50",
+                    "secondary": "#FFC107",
+                    "background": "#FFFFFF",
+                    "text": "#000000",
+                },
+                "layout": {"sidebar_width": "250px"},
+            },
+        )
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        return HTMLResponse(
+            content=f"<h1>Error Rendering Template</h1><p>{e}</p>", status_code=500
+        )
 
-    # Load base HTML template and inject content
-    template = env.get_template("base.html")
-    rendered_html = template.render(content=content)
-    return HTMLResponse(content=rendered_html)
 
-
-@app.post("/interact")
-async def handle_interaction(request: Request):
+@app.get("/components", response_class=HTMLResponse)
+async def render_components():
     """
-    Handle user interactions (e.g., button clicks, slider changes).
-
-    Args:
-        request (Request): Incoming POST request.
-    Returns:
-        dict: Response with updated data or UI.
+    Render components.html with example interactive elements.
     """
-    payload = await request.json()
-    event_type = payload.get("type")
-    event_data = payload.get("data")
-
-    # Handle different event types dynamically
-    if event_type == "button_click":
-        return {"message": f"Button '{event_data}' clicked!"}
-    elif event_type == "slider_change":
-        return {"value": event_data}
-    else:
-        return {"message": "Unknown interaction type"}
+    try:
+        # Load components.html and pass variables to the template
+        template = env.get_template("components.html")
+        html_content = template.render(
+            components=[
+                {"type": "button", "label": "Click Me"},
+                {"type": "slider", "label": "Adjust Volume", "min": 0, "max": 100},
+            ]
+        )
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        return HTMLResponse(
+            content=f"<h1>Error Rendering Template</h1><p>{e}</p>", status_code=500
+        )
 
 
 def start_server(script="hello.py", port=8501):
     """
-    Start the Preswald server and load the user script.
+    Start the Preswald server.
 
     Args:
-        script (str): Path to the user script to load.
-        port (int): Port to run the server on.
+        script (str): The Python script to load (currently a placeholder for dynamic functionality).
+        port (int): The port to run the server on.
     """
-    # Dynamically load the user script
-    try:
-        with open("user_script.py", "w") as f:
-            with open(script, "r") as user_script:
-                f.write(user_script.read())
-    except FileNotFoundError:
-        print(f"Error: File '{script}' not found.")
-        return
-
-    print(f"Starting Preswald server at http://localhost:{port}")
+    print(f"Starting Preswald server for {script} at http://localhost:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

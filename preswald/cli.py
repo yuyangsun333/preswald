@@ -90,3 +90,7 @@ def deploy(port):
         start_server(port=port)
     except Exception as e:
         click.echo(f"Error deploying app: {e}")
+
+
+if __name__ == "__main__":
+    cli()  # Ensures the CLI is callable when executed directly

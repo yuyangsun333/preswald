@@ -9,7 +9,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",  # GitHub repo URL
-    license="Apache License 2.0",         
+    license="Apache License 2.0",
     packages=find_packages(),             # Automatically find sub-packages
     classifiers=[                         # PyPI metadata
         "Programming Language :: Python :: 3",
@@ -24,10 +24,16 @@ setup(
         "sqlalchemy>=1.4.0",
         "google-api-python-client>=2.0.0",
         "apscheduler>=3.0.0",
+        "click>=8.0.0",
+        "fastapi>=0.65.0",
+        "uvicorn>=0.14.0",
+        "pandas",
+        "markdown",
+        "jinja2",
     ],
     entry_points={
         "console_scripts": [
-            "preswald=preswald.cli:main", 
+            "preswald=preswald.cli:cli",
         ]
     },
 )

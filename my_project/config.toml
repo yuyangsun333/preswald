@@ -1,0 +1,15 @@
+
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+
+[theme.color]
+primary = "#4CAF50"
+secondary = "#FFC107"
+background = "#FFFFFF"
+text = "#000000"
+
+[theme.font]
+family = "Arial, sans-serif"
+size = "16px"
