@@ -5,3 +5,7 @@ fastapi
 uvicorn
 pandas
 pytest
+plotly
+sqlalchemy
+toml
+jinja2
