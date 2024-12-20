@@ -3,6 +3,8 @@ from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 import uvicorn
 import os
+import importlib.util
+from preswald.core import get_rendered_html
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -19,6 +21,14 @@ async def render_home():
     Render the homepage using base.html and inject custom content.
     """
     try:
+        # Load and execute the script
+        script_content = None
+        if os.path.exists("hello.py"):
+            spec = importlib.util.spec_from_file_location("hello", "hello.py")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            script_content = get_rendered_html()
+
         # Load base.html and pass variables to the template
         template = env.get_template("base.html")
         html_content = template.render(
@@ -33,6 +43,7 @@ async def render_home():
                 },
                 "layout": {"sidebar_width": "250px"},
             },
+            content=script_content  # Pass the rendered content to the template
         )
         return HTMLResponse(content=html_content)
     except Exception as e:
@@ -67,8 +78,13 @@ def start_server(script="hello.py", port=8501):
     Start the Preswald server.
 
     Args:
-        script (str): The Python script to load (currently a placeholder for dynamic functionality).
+        script (str): The Python script to load.
         port (int): The port to run the server on.
     """
+    global app
+    
+    # Store script path for the endpoint to use
+    app.state.script_path = script
+    
     print(f"Starting Preswald server for {script} at http://localhost:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

@@ -16,20 +16,19 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",              # Minimum Python version
+    python_requires=">=3.8,<3.13",              # Update Python version constraint
     install_requires=[
-        "pandas>=1.0.0",                  # Dependencies
+        "pandas>=1.0.0",
         "requests>=2.0.0",
         "plotly>=5.0.0",
         "sqlalchemy>=1.4.0",
         "google-api-python-client>=2.0.0",
         "apscheduler>=3.0.0",
         "click>=8.0.0",
-        "fastapi>=0.65.0",
-        "uvicorn>=0.14.0",
-        "pandas",
-        "markdown",
-        "jinja2",
+        "fastapi>=0.65.0,<1.0.0",              # Add upper bound for stability
+        "uvicorn>=0.14.0,<1.0.0",              # Add upper bound for stability
+        "markdown>=3.0.0",                      # Add version constraint
+        "jinja2>=3.0.0",                       # Add version constraint
     ],
     entry_points={
         "console_scripts": [

@@ -1,5 +1,5 @@
 import uuid
-
+from preswald.core import _rendered_html
 
 def generate_id(prefix="component"):
     """
@@ -25,7 +25,9 @@ def checkbox(label, default=False):
     """
     checked = "checked" if default else ""
     id = generate_id("checkbox")
-    return f'<input type="checkbox" id="{id}" {checked}> <label for="{id}">{label}</label>'
+    html = f'<input type="checkbox" id="{id}" {checked}> <label for="{id}">{label}</label>'
+    _rendered_html.append(html)
+    return html
 
 
 def slider(label, min_val=0, max_val=100, step=1, default=50):
@@ -42,10 +44,12 @@ def slider(label, min_val=0, max_val=100, step=1, default=50):
         str: HTML string for the slider.
     """
     id = generate_id("slider")
-    return f"""
+    html = f"""
     <label for="{id}">{label}</label>
     <input type="range" id="{id}" name="{id}" min="{min_val}" max="{max_val}" step="{step}" value="{default}">
     """
+    _rendered_html.append(html)
+    return html
 
 
 def button(label):
@@ -58,7 +62,9 @@ def button(label):
         str: HTML string for the button.
     """
     id = generate_id("button")
-    return f'<button id="{id}">{label}</button>'
+    html = f'<button id="{id}">{label}</button>'
+    _rendered_html.append(html)
+    return html
 
 
 def selectbox(label, options, default=None):
@@ -74,16 +80,18 @@ def selectbox(label, options, default=None):
     """
     id = generate_id("selectbox")
     options_html = "".join(
-        f'<option value="{opt}" {"selected" if opt ==
-                                 default else ""}>{opt}</option>'
+        f'<option value="{opt}" {"selected" if opt == default else ""}'
+        f'>{opt}</option>'
         for opt in options
     )
-    return f"""
+    html = f"""
     <label for="{id}">{label}</label>
     <select id="{id}" name="{id}">
         {options_html}
     </select>
     """
+    _rendered_html.append(html)
+    return html
 
 
 def text_input(label, placeholder=""):
@@ -97,10 +105,12 @@ def text_input(label, placeholder=""):
         str: HTML string for the text input.
     """
     id = generate_id("textinput")
-    return f"""
+    html = f"""
     <label for="{id}">{label}</label>
     <input type="text" id="{id}" name="{id}" placeholder="{placeholder}">
     """
+    _rendered_html.append(html)
+    return html
 
 
 def progress(label, value=0):
@@ -114,10 +124,12 @@ def progress(label, value=0):
         str: HTML string for the progress bar.
     """
     id = generate_id("progress")
-    return f"""
+    html = f"""
     <label for="{id}">{label}</label>
     <progress id="{id}" value="{value}" max="100"></progress>
     """
+    _rendered_html.append(html)
+    return html
 
 
 def spinner(label):
@@ -130,12 +142,14 @@ def spinner(label):
         str: HTML string for the spinner.
     """
     id = generate_id("spinner")
-    return f"""
+    html = f"""
     <div id="{id}" class="spinner">
         <label>{label}</label>
         <div class="spinner-border" role="status"></div>
     </div>
     """
+    _rendered_html.append(html)
+    return html
 
 
 def alert(message, level="info"):
@@ -155,7 +169,9 @@ def alert(message, level="info"):
         "success": "alert-success",
     }.get(level, "alert-info")
     id = generate_id("alert")
-    return f'<div id="{id}" class="alert {level_class}">{message}</div>'
+    html = f'<div id="{id}" class="alert {level_class}">{message}</div>'
+    _rendered_html.append(html)
+    return html
 
 
 def image(src, alt="Image"):
@@ -169,4 +185,6 @@ def image(src, alt="Image"):
         str: HTML string for the image.
     """
     id = generate_id("image")
-    return f'<img id="{id}" src="{src}" alt="{alt}" style="max-width: 100%; height: auto;">'
+    html = f'<img id="{id}" src="{src}" alt="{alt}" style="max-width: 100%; height: auto;">'
+    _rendered_html.append(html)
+    return html
