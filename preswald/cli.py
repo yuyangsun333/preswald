@@ -1,121 +1,92 @@
-import click
 import os
-import sys
-from preswald import __version__ 
+import click
+from preswald.server import start_server
 
 
-# Entry point for CLI
 @click.group()
-@click.version_option(__version__, message="Preswald CLI Version: %(version)s")
 def cli():
-    """Preswald CLI - Simplified Data Workflow Tool."""
+    """
+    Preswald CLI - A lightweight framework for interactive data apps.
+    """
     pass
 
 
-# Command: Initialize Project
 @cli.command()
-@click.argument("project_name")
-def init(project_name):
+@click.argument("name", default="preswald_project")
+def init(name):
     """
-    Initialize a new Preswald project with the necessary folder structure.
-    """
-    structure = [
-        "ingestion/",
-        "transformations/",
-        "models/",
-        "dashboards/",
-        "data/",
-        "tests/"
-    ]
-    try:
-        os.makedirs(project_name, exist_ok=True)
-        for folder in structure:
-            os.makedirs(os.path.join(project_name, folder), exist_ok=True)
-        click.echo(f"Initialized new Preswald project: {project_name}")
-    except Exception as e:
-        click.echo(f"Error initializing project: {e}", err=True)
+    Initialize a new Preswald project.
 
-
-# Command: Run Local Server
-@cli.command()
-def run():
-    """
-    Start a local development server for real-time app preview.
-    """
-    click.echo("Starting local server...")
-    # Placeholder: Replace with actual server startup logic
-    os.system("python -m http.server 8000")
-    click.echo("Server running at http://localhost:8000")
-
-
-# Command: Execute Pipeline
-@cli.command()
-@click.argument("pipeline_name")
-def pipeline_run(pipeline_name):
-    """
-    Run a specific data pipeline.
+    This creates a directory with boilerplate files like `hello.py` and `config.toml`.
     """
     try:
-        click.echo(f"Running pipeline: {pipeline_name}")
-        # Placeholder: Replace with actual pipeline execution logic
-        pipeline.run_pipeline(pipeline_name)
-        click.echo("Pipeline execution completed successfully.")
+        os.makedirs(name, exist_ok=True)
+
+        # Create boilerplate files
+        with open(os.path.join(name, "hello.py"), "w") as f:
+            f.write(
+                '''from preswald import text
+
+text("# Welcome to Preswald!")
+text("This is your first app. 🎉")
+'''
+            )
+        with open(os.path.join(name, "config.toml"), "w") as f:
+            f.write(
+                '''
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+
+[theme.color]
+primary = "#4CAF50"
+secondary = "#FFC107"
+background = "#FFFFFF"
+text = "#000000"
+
+[theme.font]
+family = "Arial, sans-serif"
+size = "16px"
+'''
+            )
+        with open(os.path.join(name, "secrets.toml"), "w") as f:
+            f.write("# Add your secrets (e.g., API keys) here.\n")
+        with open(os.path.join(name, ".gitignore"), "w") as f:
+            f.write("secrets.toml\n")
+
+        click.echo(f"Initialized a new Preswald project in '{name}/'")
     except Exception as e:
-        click.echo(f"Error executing pipeline: {e}", err=True)
-        sys.exit(1)
+        click.echo(f"Error initializing project: {e}")
 
 
-# Command: Deploy to Vercel
 @cli.command()
-@click.option("--prod", is_flag=True, help="Deploy to production environment.")
-def deploy(prod):
+@click.argument("script", default="hello.py")
+@click.option("--port", default=8501, help="Port to run the server on.")
+def run(script, port):
     """
-    Deploy the project to Vercel.
+    Run a Preswald app.
+
+    By default, it runs the `hello.py` script on localhost:8501.
     """
-    env = "production" if prod else "preview"
-    click.echo(f"Deploying project to {env} environment...")
-    try:
-        os.system("vercel --prod" if prod else "vercel")
-        click.echo("Deployment successful!")
-    except Exception as e:
-        click.echo(f"Deployment failed: {e}", err=True)
+    if not os.path.exists(script):
+        click.echo(f"Error: Script '{script}' not found.")
+        return
+
+    click.echo(f"Running '{script}' on http://localhost:{port}")
+    start_server(script=script, port=port)
 
 
-# Command: Generate API Endpoint
 @cli.command()
-@click.argument("model_name")
-def api_generate(model_name):
+@click.option("--port", default=8501, help="Port for local deployment.")
+def deploy(port):
     """
-    Generate a shareable API endpoint for a given data model.
+    Deploy your Preswald app locally.
+
+    This allows you to share the app within your local network.
     """
     try:
-        click.echo(f"Generating API for model: {model_name}")
-        # Placeholder: Replace with actual logic
-        api_url = f"http://localhost:8000/api/{model_name}"
-        click.echo(f"API endpoint generated: {api_url}")
+        click.echo(f"Deploying app locally on http://localhost:{port}...")
+        start_server(port=port)
     except Exception as e:
-        click.echo(f"Error generating API: {e}", err=True)
-
-
-# Command: Debug Pipelines
-@cli.command()
-def debug():
-    """
-    Launch interactive debugging mode.
-    """
-    click.echo("Starting interactive debug mode...")
-    # Placeholder: Replace with interactive debugging logic
-    click.echo("Debugging pipelines interactively...")
-
-
-# Main CLI Execution
-def main():
-    try:
-        cli()
-    except Exception as e:
-        click.echo(f"An unexpected error occurred: {e}", err=True)
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
+        click.echo(f"Error deploying app: {e}")

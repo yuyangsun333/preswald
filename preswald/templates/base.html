@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "Preswald App" }}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: {{ theme.font.family }};
+            font-size: {{ theme.font.size }};
+            background-color: {{ theme.color.background }};
+            color: {{ theme.color.text }};
+        }
+        .topbar {
+            background-color: {{ theme.color.primary }};
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .sidebar {
+            width: {{ theme.layout.sidebar_width }};
+            background-color: {{ theme.color.secondary }};
+            height: 100vh;
+            float: left;
+            padding: 20px;
+        }
+        .content {
+            margin-left: {{ theme.layout.sidebar_width }};
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top bar -->
+    <div class="topbar">
+        <h1>{{ title or "Preswald" }}</h1>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        {% block sidebar %}
+        <p>Sidebar Content</p>
+        {% endblock %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        {% block content %}
+        <p>Main Content</p>
+        {% endblock %}
+    </div>
+</body>
+</html>

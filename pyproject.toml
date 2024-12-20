@@ -1,0 +1,8 @@
+[tool.poetry.dependencies]
+python = "^3.7"
+markdown = "^3.4"
+httpx = "^0.23"
+fastapi = "^0.95"
+uvicorn = "^0.21"
+pandas = "^1.5"
+pytest = "^8.3"

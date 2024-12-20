@@ -1,0 +1,7 @@
+markdown
+httpx
+click
+fastapi
+uvicorn
+pandas
+pytest

@@ -1,0 +1,58 @@
+<!-- Button -->
+<div class="component-button">
+    <button id="{{ id }}" class="button" onclick="{{ onclick }}">
+        {{ label }}
+    </button>
+</div>
+
+<!-- Slider -->
+<div class="component-slider">
+    <label for="{{ id }}">{{ label }}</label>
+    <input type="range" id="{{ id }}" name="{{ id }}" min="{{ min_val }}" max="{{ max_val }}" step="{{ step }}" value="{{ default }}">
+</div>
+
+<!-- Checkbox -->
+<div class="component-checkbox">
+    <input type="checkbox" id="{{ id }}" name="{{ id }}" {% if checked %}checked{% endif %}>
+    <label for="{{ id }}">{{ label }}</label>
+</div>
+
+<!-- Text Input -->
+<div class="component-textinput">
+    <label for="{{ id }}">{{ label }}</label>
+    <input type="text" id="{{ id }}" name="{{ id }}" placeholder="{{ placeholder }}">
+</div>
+
+<!-- Select Box -->
+<div class="component-selectbox">
+    <label for="{{ id }}">{{ label }}</label>
+    <select id="{{ id }}" name="{{ id }}">
+        {% for option in options %}
+        <option value="{{ option }}" {% if option == default %}selected{% endif %}>
+            {{ option }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+<!-- Table -->
+<div class="component-table">
+    <table class="table">
+        <thead>
+            <tr>
+                {% for header in headers %}
+                <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for cell in row %}
+                <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
