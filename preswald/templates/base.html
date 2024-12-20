@@ -5,51 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title or "Preswald App" }}</title>
     <style>
-        body {
-            font-family: {{ theme.font.family }};
-            font-size: {{ theme.font.size }};
+        /* Global styles */
+        * {
             margin: 0;
             padding: 0;
-            background-color: {{ theme.color.background }};
-            color: {{ theme.color.text }};
+            box-sizing: border-box;
         }
-        .topbar {
-            background-color: {{ theme.color.primary }};
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .sidebar {
-            width: {{ theme.layout.sidebar_width }};
-            background-color: {{ theme.color.secondary }};
+
+        body {
+            font-family: {{ theme.font.family or "Arial, sans-serif" }};
+            font-size: {{ theme.font.size or "16px" }};
+            background-color: {{ theme.color.background or "#f9f9f9" }};
+            color: {{ theme.color.text or "#333" }};
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
             height: 100vh;
-            float: left;
-            padding: 20px;
         }
-        .content {
-            margin-left: {{ theme.layout.sidebar_width }};
+
+        /* Top bar styles */
+        .topbar {
+            background-color: {{ theme.color.primary or "#4CAF50" }};
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        /* Sidebar styles */
+        .layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: {{ theme.layout.sidebar_width or "250px" }};
+            background-color: {{ theme.color.secondary or "#2c3e50" }};
+            color: #fff;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Content area styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Top Bar -->
     <div class="topbar">
-        <h1>{{ title }}</h1>
+        <h1>{{ title or "Preswald App" }}</h1>
     </div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        {% block sidebar %}
-        <p>Default Sidebar Content</p>
-        {% endblock %}
-    </div>
+    <!-- Layout -->
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            {% block sidebar %}
+            <p><strong>Sidebar</strong></p>
+            <a href="#">Home</a>
+            <a href="#">Settings</a>
+            <a href="#">Profile</a>
+            {% endblock %}
+        </div>
 
-    <!-- Main Content -->
-    <div class="content">
-        {% block content %}
-        <p>Welcome to Preswald!</p>
-        {% endblock %}
+        <!-- Main Content -->
+        <div class="content">
+            {% block content %}
+            <h2>Welcome to Preswald!</h2>
+            <p>This is your main content area.</p>
+            {% endblock %}
+        </div>
     </div>
 </body>
 </html>

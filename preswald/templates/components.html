@@ -1,58 +1,110 @@
-<!-- Button -->
-<div class="component-button">
-    <button id="{{ id }}" class="button" onclick="{{ onclick }}">
-        {{ label }}
-    </button>
-</div>
-
-<!-- Slider -->
-<div class="component-slider">
-    <label for="{{ id }}">{{ label }}</label>
-    <input type="range" id="{{ id }}" name="{{ id }}" min="{{ min_val }}" max="{{ max_val }}" step="{{ step }}" value="{{ default }}">
-</div>
-
-<!-- Checkbox -->
-<div class="component-checkbox">
-    <input type="checkbox" id="{{ id }}" name="{{ id }}" {% if checked %}checked{% endif %}>
-    <label for="{{ id }}">{{ label }}</label>
-</div>
-
-<!-- Text Input -->
-<div class="component-textinput">
-    <label for="{{ id }}">{{ label }}</label>
-    <input type="text" id="{{ id }}" name="{{ id }}" placeholder="{{ placeholder }}">
-</div>
-
-<!-- Select Box -->
-<div class="component-selectbox">
-    <label for="{{ id }}">{{ label }}</label>
-    <select id="{{ id }}" name="{{ id }}">
-        {% for option in options %}
-        <option value="{{ option }}" {% if option == default %}selected{% endif %}>
-            {{ option }}
-        </option>
-        {% endfor %}
-    </select>
-</div>
-
-<!-- Table -->
-<div class="component-table">
-    <table class="table">
-        <thead>
-            <tr>
-                {% for header in headers %}
-                <th>{{ header }}</th>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preswald Components</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .component {
+            margin-bottom: 20px;
+        }
+        .component-button button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .component-button button:hover {
+            background-color: #45a049;
+        }
+        .component-slider label, 
+        .component-checkbox label, 
+        .component-selectbox label {
+            font-weight: bold;
+        }
+        .component-slider input {
+            width: 100%;
+        }
+        .component-checkbox input {
+            margin-right: 5px;
+        }
+        .component-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .component-table th, .component-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .component-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Preswald Components</h1>
+    {% for component in components %}
+        {% if component.type == "button" %}
+        <div class="component component-button">
+            <button id="{{ component.id }}" onclick="{{ component.onclick }}">{{ component.label }}</button>
+        </div>
+        {% elif component.type == "slider" %}
+        <div class="component component-slider">
+            <label for="{{ component.id }}">{{ component.label }}</label>
+            <input type="range" id="{{ component.id }}" name="{{ component.id }}" 
+                   min="{{ component.min_val }}" max="{{ component.max_val }}" 
+                   value="{{ component.default }}">
+        </div>
+        {% elif component.type == "checkbox" %}
+        <div class="component component-checkbox">
+            <input type="checkbox" id="{{ component.id }}" name="{{ component.id }}" {% if component.checked %}checked{% endif %}>
+            <label for="{{ component.id }}">{{ component.label }}</label>
+        </div>
+        {% elif component.type == "selectbox" %}
+        <div class="component component-selectbox">
+            <label for="{{ component.id }}">{{ component.label }}</label>
+            <select id="{{ component.id }}" name="{{ component.id }}">
+                {% for option in component.options %}
+                <option value="{{ option }}" {% if option == component.default %}selected{% endif %}>
+                    {{ option }}
+                </option>
                 {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in rows %}
-            <tr>
-                {% for cell in row %}
-                <td>{{ cell }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </select>
+        </div>
+        {% elif component.type == "table" %}
+        <div class="component component-table">
+            <table>
+                <thead>
+                    <tr>
+                        {% for header in component.headers %}
+                        <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in component.rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>
