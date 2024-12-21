@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name="preswald",                      # Your package name
     version="0.1.12",                      # Initial version
-    author="Amrutha Gujjar",              # Author name
-    author_email="amrutha@example.com",   # Author email
+    author="Structured",              # Author name
+    author_email="founders@structuredlabs.com",   # Author email
     description="A lightweight data workflow SDK.",  # Short description
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
