@@ -27,7 +27,6 @@ const App = () => {
 
   return (
     <Layout>
-      <h2>Dynamic Components</h2>
       <div>
         {components.map((component, index) => {
           switch (component.type) {
