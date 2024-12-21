@@ -12,9 +12,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
 ]
-const teams = [
-  { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
-]
+
 const userNavigation = [
   { name: 'Your profile', href: '#' },
   { name: 'Sign out', href: '#' },
@@ -29,7 +27,6 @@ export default function Example({ children }) {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         navigation={navigation}
-        teams={teams}
       />
       <div className="lg:pl-72">
         <Topbar setSidebarOpen={setSidebarOpen} userNavigation={userNavigation} />

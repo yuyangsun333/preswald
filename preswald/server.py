@@ -58,7 +58,17 @@ async def get_components():
         {"type": "image", "src": "https://cdn.pixabay.com/photo/2020/07/21/01/33/cute-5424776_1280.jpg",
          "alt": "Placeholder image"},
         {"type": "text_input", "label": "Type here",
-            "placeholder": "Type something here"}
+            "placeholder": "Type something here"},
+        {"type": "connection"},
+        {
+            "type": "table",
+            "data": [
+                {"Index": 1, "Value": 1},
+                {"Index": 2, "Value": 2},
+                {"Index": 3, "Value": 3}
+            ]
+        },
+        {"type": "plot", "data": [1, 2, 3]}
     ]
 
 

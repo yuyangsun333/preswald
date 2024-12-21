@@ -12,10 +12,11 @@ import MarkdownRendererWidget from "./widgets/MarkdownRendererWidget";
 import TableViewerWidget from "./widgets/TableViewerWidget";
 import ConnectionInterfaceWidget from "./widgets/ConnectionInterfaceWidget";
 import UnknownWidget from "./widgets/UnknownWidget";
+import DataVisualizationWidget from "./widgets/DataVisualizationWidget";
 
 const DynamicWidgets = ({ components }) => {
   return (
-    <div>
+    <div className="flex flex-wrap gap-4 p-4">
       {components.map((component, index) => {
         let renderedComponent;
 
@@ -101,15 +102,22 @@ const DynamicWidgets = ({ components }) => {
           case "connection":
             renderedComponent = <ConnectionInterfaceWidget key={index} />;
             break;
+          case "plot":
+            renderedComponent = <DataVisualizationWidget key={index} data={component.data} />;
+            break;
           default:
             renderedComponent = <UnknownWidget key={index} />;
             break;
         }
 
-        // Log the rendered component to the console
-        console.log(`Rendering component at index ${index}:`, renderedComponent);
-
-        return renderedComponent;
+        return (
+          <div
+            key={index}
+            className="flex-1 min-w-[250px] max-w-[33%] p-4 bg-white border border-gray-200 rounded-md shadow-sm"
+          >
+            {renderedComponent}
+          </div>
+        );
       })}
     </div>
   );

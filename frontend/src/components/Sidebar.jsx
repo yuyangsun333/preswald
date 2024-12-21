@@ -7,7 +7,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams }) {
+export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation }) {
   return (
     <>
       {/* Mobile Sidebar */}
@@ -26,9 +26,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
               <div className="flex h-16 shrink-0 items-center">
                 <img
-                  src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+                  src="logo.png"
                   alt="Your Company"
-                  className="h-8 w-auto"
+                  className="h-14 w-auto"
                 />
               </div>
               <nav className="flex flex-1 flex-col">
@@ -42,15 +42,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams
                             href={item.href}
                             className={classNames(
                               item.current
-                                ? 'bg-gray-50 text-indigo-600'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                                ? 'bg-gray-50 text-blue-600'
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600',
                               'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                             )}
                           >
                             <item.icon
                               aria-hidden="true"
                               className={classNames(
-                                item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
+                                item.current ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600',
                                 'size-6 shrink-0'
                               )}
                             />
@@ -60,46 +60,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams
                       ))}
                     </ul>
                   </li>
-                  {/* Teams */}
-                  <li>
-                    <div className="text-xs/6 font-semibold text-gray-400">Your teams</div>
-                    <ul className="-mx-2 mt-2 space-y-1">
-                      {teams.map((team) => (
-                        <li key={team.name}>
-                          <a
-                            href={team.href}
-                            className={classNames(
-                              team.current
-                                ? 'bg-gray-50 text-indigo-600'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
-                              'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
-                            )}
-                          >
-                            <span
-                              className={classNames(
-                                team.current
-                                  ? 'border-indigo-600 text-indigo-600'
-                                  : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600',
-                                'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium'
-                              )}
-                            >
-                              {team.initial}
-                            </span>
-                            <span className="truncate">{team.name}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
                   {/* Settings */}
                   <li className="mt-auto">
                     <a
                       href="#"
-                      className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                      className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-blue-600"
                     >
                       <Cog6ToothIcon
                         aria-hidden="true"
-                        className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+                        className="size-6 shrink-0 text-gray-400 group-hover:text-blue-600"
                       />
                       Settings
                     </a>
@@ -116,9 +85,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
             <img
-              src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+              src="logo.png"
               alt="Your Company"
-              className="h-8 w-auto"
+              className="h-14 w-auto"
             />
           </div>
           <nav className="flex flex-1 flex-col">
@@ -133,49 +102,19 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, teams
                         href={item.href}
                         className={classNames(
                           item.current
-                            ? 'bg-gray-50 text-indigo-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                            ? 'bg-gray-50 text-blue-600'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600',
                           'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                         )}
                       >
                         <item.icon
                           aria-hidden="true"
                           className={classNames(
-                            item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
+                            item.current ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600',
                             'size-6 shrink-0'
                           )}
                         />
                         {item.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li>
-                <div className="text-xs/6 font-semibold text-gray-400">Your teams</div>
-                <ul className="-mx-2 mt-2 space-y-1">
-                  {teams.map((team) => (
-                    <li key={team.name}>
-                      <a
-                        href={team.href}
-                        className={classNames(
-                          team.current
-                            ? 'bg-gray-50 text-indigo-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
-                          'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
-                        )}
-                      >
-                        <span
-                          className={classNames(
-                            team.current
-                              ? 'border-indigo-600 text-indigo-600'
-                              : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600',
-                            'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium'
-                          )}
-                        >
-                          {team.initial}
-                        </span>
-                        <span className="truncate">{team.name}</span>
                       </a>
                     </li>
                   ))}
