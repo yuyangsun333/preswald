@@ -1,10 +1,29 @@
 from markdown import markdown
 import pandas as pd
 from sqlalchemy import create_engine
+from preswald.state import StateManager
+from functools import wraps
 
 # Global store for connections and rendered components
 connections = {}
 _rendered_html = []
+
+# Create a global state manager
+state_manager = StateManager()
+
+
+def track(func):
+    """Decorator to track function calls and their dependencies"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Register this function call
+        node_id = state_manager.track_function_call(func, args, kwargs)
+
+        # Get or compute the result
+        return state_manager.get_or_compute(node_id)
+
+    return wrapper
 
 
 def text(markdown_str):
@@ -70,11 +89,11 @@ def view(connection_name, limit=50):
     connection = get_connection(connection_name)
     if isinstance(connection, pd.DataFrame):
         html_table = connection.head(limit).to_html(
-            index=False, classes="table table-striped")
+            index=False, classes="table table-striped"
+        )
         _rendered_html.append(html_table)
     else:
-        raise TypeError(
-            f"Connection '{connection_name}' is not a valid DataFrame")
+        raise TypeError(f"Connection '{connection_name}' is not a valid DataFrame")
 
 
 def get_rendered_html():
@@ -98,8 +117,7 @@ def execute_query(connection_name, query):
     connection = get_connection(connection_name)
 
     if not isinstance(connection, create_engine().__class__):
-        raise TypeError(
-            f"Connection '{connection_name}' is not a database connection")
+        raise TypeError(f"Connection '{connection_name}' is not a database connection")
 
     with connection.connect() as conn:
         result = pd.read_sql(query, conn)

@@ -1,7 +1,7 @@
 # Initialize the Preswald package
 __version__ = "0.1.12"
 
-from .core import text, connect, plotly
+from .core import track, text, connect, plotly
 from .components import (
     checkbox, slider, button, selectbox,
     text_input, progress, spinner, alert, image
