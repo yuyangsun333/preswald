@@ -48,6 +48,17 @@ async def get_components():
     return [
         {"type": "button", "label": "Click Me"},
         {"type": "slider", "label": "Adjust Volume", "min": 0, "max": 100},
+        {"type": "text", "label": "Enter Name", "placeholder": "Your Name"},
+        {"type": "checkbox", "label": "Agree to Terms"},
+        {"type": "selectbox", "label": "Select Option",
+            "options": ["Option 1", "Option 2", "Option 3"]},
+        {"type": "progress", "label": "Loading...", "value": 50},
+        {"type": "spinner", "label": "Loading..."},
+        {"type": "alert", "message": "This is an alert!", "level": "info"},
+        {"type": "image", "src": "https://cdn.pixabay.com/photo/2020/07/21/01/33/cute-5424776_1280.jpg",
+         "alt": "Placeholder image"},
+        {"type": "text_input", "label": "Type here",
+            "placeholder": "Type something here"}
     ]
 
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "./components/Layout";
+import DynamicComponents from "./components/DynamicComponents";
 
 const App = () => {
   const [components, setComponents] = useState([]);
@@ -27,27 +28,7 @@ const App = () => {
 
   return (
     <Layout>
-      <div>
-        {components.map((component, index) => {
-          switch (component.type) {
-            case "button":
-              return (
-                <button key={index} onClick={() => alert("Button clicked!")}>
-                  {component.label}
-                </button>
-              );
-            case "slider":
-              return (
-                <div key={index}>
-                  <label>{component.label}</label>
-                  <input type="range" min={component.min} max={component.max} />
-                </div>
-              );
-            default:
-              return <div key={index}>Unknown component type</div>;
-          }
-        })}
-      </div>
+      <DynamicComponents components={components} />
     </Layout>
   );
 };
