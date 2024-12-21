@@ -1,0 +1,56 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+}
+
+.component {
+  margin-bottom: 20px;
+}
+
+.component-button button {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.component-button button:hover {
+  background-color: #45a049;
+}
+
+.component-slider label,
+.component-checkbox label,
+.component-selectbox label {
+  font-weight: bold;
+}
+
+.component-slider input {
+  width: 100%;
+}
+
+.component-checkbox input {
+  margin-right: 5px;
+}
+
+.component-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.component-table th,
+.component-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.component-table th {
+  background-color: #4caf50;
+  color: white;
+}
