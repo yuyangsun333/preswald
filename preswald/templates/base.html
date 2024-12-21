@@ -5,37 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title or "Preswald App" }}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="/static/js/script.js" defer></script>
+    <script src="/static/js/app.js" defer></script> <!-- Your React app bundle -->
 </head>
 <body>
-    <!-- Top Bar -->
-    <div class="topbar">
-        <h1>{{ title or "Preswald App" }}</h1>
-    </div>
-
-    <!-- Layout -->
-    <div class="layout">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            {% block sidebar %}
-            <p><strong>Sidebar</strong></p>
-            <a href="#">Home</a>
-            <a href="#">Settings</a>
-            <a href="#">Profile</a>
-            {% endblock %}
-        </div>
-
-        <!-- Main Content -->
-        <div class="content">
-            {% if content %}
-                {{ content | safe }}
-            {% else %}
-                {% block content %}
-                <h2>Welcome to Preswald!</h2>
-                <p>This is your main content area.</p>
-                {% endblock %}
-            {% endif %}
-        </div>
-    </div>
+    <div id="root"></div> <!-- React app will render here -->
 </body>
 </html>
