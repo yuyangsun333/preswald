@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 import uvicorn
 import os
@@ -12,7 +13,11 @@ app = FastAPI()
 # Configure Jinja2 for template rendering
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+
+# Mount the static directory
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -82,9 +87,9 @@ def start_server(script="hello.py", port=8501):
         port (int): The port to run the server on.
     """
     global app
-    
+
     # Store script path for the endpoint to use
     app.state.script_path = script
-    
+
     print(f"Starting Preswald server for {script} at http://localhost:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
