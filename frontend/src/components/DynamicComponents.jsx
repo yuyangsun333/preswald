@@ -1,20 +1,24 @@
-import React from "react";
-import ButtonWidget from "./widgets/ButtonWidget";
-import SliderWidget from "./widgets/SliderWidget";
-import TextInputWidget from "./widgets/TextInputWidget";
-import CheckboxWidget from "./widgets/CheckboxWidget";
-import SelectboxWidget from "./widgets/SelectboxWidget";
-import ProgressWidget from "./widgets/ProgressWidget";
-import SpinnerWidget from "./widgets/SpinnerWidget";
 import AlertWidget from "./widgets/AlertWidget";
+import ButtonWidget from "./widgets/ButtonWidget";
+import CheckboxWidget from "./widgets/CheckboxWidget";
+import ConnectionInterfaceWidget from "./widgets/ConnectionInterfaceWidget";
+import DataVisualizationWidget from "./widgets/DataVisualizationWidget";
 import ImageWidget from "./widgets/ImageWidget";
 import MarkdownRendererWidget from "./widgets/MarkdownRendererWidget";
+import ProgressWidget from "./widgets/ProgressWidget";
+import React from "react";
+import SelectboxWidget from "./widgets/SelectboxWidget";
+import SliderWidget from "./widgets/SliderWidget";
+import SpinnerWidget from "./widgets/SpinnerWidget";
 import TableViewerWidget from "./widgets/TableViewerWidget";
-import ConnectionInterfaceWidget from "./widgets/ConnectionInterfaceWidget";
+import TextInputWidget from "./widgets/TextInputWidget";
 import UnknownWidget from "./widgets/UnknownWidget";
-import DataVisualizationWidget from "./widgets/DataVisualizationWidget";
 
-const DynamicWidgets = ({ components }) => {
+const DynamicComponents = ({ components, onComponentUpdate }) => {
+  const handleUpdate = (componentId, value) => {
+    onComponentUpdate(componentId, value);
+  };
+
   return (
     <div className="flex flex-wrap gap-4 p-4">
       {components.map((component, index) => {
@@ -22,77 +26,87 @@ const DynamicWidgets = ({ components }) => {
 
         switch (component.type) {
           case "button":
-            renderedComponent = <ButtonWidget key={index} label={component.label} />;
+            renderedComponent = (
+              <ButtonWidget
+                key={component.id}
+                {...component}
+                onClick={() => handleUpdate(component.id, true)}
+              />
+            );
             break;
           case "slider":
             renderedComponent = (
               <SliderWidget
-                key={index}
-                label={component.label}
-                min={component.min}
-                max={component.max}
+                key={component.id}
+                {...component}
+                onChange={(value) => handleUpdate(component.id, value)}
               />
             );
             break;
           case "text_input":
             renderedComponent = (
               <TextInputWidget
-                key={index}
-                label={component.label}
-                placeholder={component.placeholder}
+                key={component.id}
+                {...component}
+                onChange={(value) => handleUpdate(component.id, value)}
               />
             );
             break;
           case "checkbox":
             renderedComponent = (
               <CheckboxWidget
-                key={index}
-                label={component.label}
-                defaultChecked={component.default}
+                key={component.id}
+                {...component}
+                onChange={(value) => handleUpdate(component.id, value)}
               />
             );
             break;
           case "selectbox":
             renderedComponent = (
               <SelectboxWidget
-                key={index}
-                label={component.label}
-                options={component.options}
-                defaultOption={component.default}
+                key={component.id}
+                {...component}
+                onChange={(value) => handleUpdate(component.id, value)}
               />
             );
             break;
           case "progress":
             renderedComponent = (
               <ProgressWidget
-                key={index}
-                label={component.label}
-                value={component.value}
+                key={component.id}
+                {...component}
               />
             );
             break;
           case "spinner":
-            renderedComponent = <SpinnerWidget key={index} label={component.label} />;
+            renderedComponent = (
+              <SpinnerWidget
+                key={component.id}
+                {...component}
+              />
+            );
             break;
           case "alert":
             renderedComponent = (
               <AlertWidget
-                key={index}
-                message={component.message}
-                level={component.level}
+                key={component.id}
+                {...component}
               />
             );
             break;
           case "image":
             renderedComponent = (
-              <ImageWidget key={index} src={component.src} alt={component.alt} />
+              <ImageWidget
+                key={component.id}
+                {...component}
+              />
             );
             break;
           case "text":
             renderedComponent = (
               <MarkdownRendererWidget
-                key={index}
-                markdown={component.content}
+                key={component.id}
+                {...component}
               />
             );
             break;
@@ -123,4 +137,4 @@ const DynamicWidgets = ({ components }) => {
   );
 };
 
-export default DynamicWidgets;
+export default DynamicComponents;

@@ -1,190 +1,153 @@
 import uuid
-from preswald.core import _rendered_html
+from preswald.core import _rendered_html, get_component_state
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def generate_id(prefix="component"):
-    """
-    Generate a unique ID for a component.
-
-    Args:
-        prefix (str): Prefix for the component ID.
-    Returns:
-        str: A unique ID string.
-    """
+    """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
-
 def checkbox(label, default=False):
-    """
-    Create an HTML checkbox component.
-
-    Args:
-        label (str): Label for the checkbox.
-        default (bool): Whether the checkbox is checked by default.
-    Returns:
-        str: HTML string for the checkbox.
-    """
-    checked = "checked" if default else ""
+    """Create a checkbox component."""
     id = generate_id("checkbox")
-    html = f'<input type="checkbox" id="{id}" {checked}> <label for="{id}">{label}</label>'
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating checkbox component with id {id}, label: {label}")
+    component = {
+        "type": "checkbox",
+        "id": id,
+        "label": label,
+        "value": get_component_state(id, default)
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def slider(label, min_val=0, max_val=100, step=1, default=50):
-    """
-    Create an HTML slider component.
-
-    Args:
-        label (str): Label for the slider.
-        min_val (int): Minimum value for the slider.
-        max_val (int): Maximum value for the slider.
-        step (int): Step size for the slider.
-        default (int): Default value for the slider.
-    Returns:
-        str: HTML string for the slider.
-    """
+    """Create a slider component."""
     id = generate_id("slider")
-    html = f"""
-    <label for="{id}">{label}</label>
-    <input type="range" id="{id}" name="{id}" min="{min_val}" max="{max_val}" step="{step}" value="{default}">
-    """
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating slider component with id {id}, label: {label}")
+    component = {
+        "type": "slider",
+        "id": id,
+        "label": label,
+        "min": min_val,
+        "max": max_val,
+        "step": step,
+        "value": get_component_state(id, default)
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def button(label):
-    """
-    Create an HTML button component.
-
-    Args:
-        label (str): Label for the button.
-    Returns:
-        str: HTML string for the button.
-    """
+    """Create a button component."""
     id = generate_id("button")
-    html = f'<button id="{id}">{label}</button>'
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating button component with id {id}, label: {label}")
+    component = {
+        "type": "button",
+        "id": id,
+        "label": label
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def selectbox(label, options, default=None):
-    """
-    Create an HTML select (dropdown) component.
-
-    Args:
-        label (str): Label for the dropdown.
-        options (list): List of options for the dropdown.
-        default (str): Default selected option.
-    Returns:
-        str: HTML string for the dropdown.
-    """
+    """Create a select component."""
     id = generate_id("selectbox")
-    options_html = "".join(
-        f'<option value="{opt}" {"selected" if opt == default else ""}'
-        f'>{opt}</option>'
-        for opt in options
-    )
-    html = f"""
-    <label for="{id}">{label}</label>
-    <select id="{id}" name="{id}">
-        {options_html}
-    </select>
-    """
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating selectbox component with id {id}, label: {label}")
+    component = {
+        "type": "selectbox",
+        "id": id,
+        "label": label,
+        "options": options,
+        "value": get_component_state(id, default or options[0] if options else None)
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def text_input(label, placeholder=""):
-    """
-    Create an HTML text input component.
-
-    Args:
-        label (str): Label for the text input.
-        placeholder (str): Placeholder text for the input field.
-    Returns:
-        str: HTML string for the text input.
-    """
-    id = generate_id("textinput")
-    html = f"""
-    <label for="{id}">{label}</label>
-    <input type="text" id="{id}" name="{id}" placeholder="{placeholder}">
-    """
-    _rendered_html.append(html)
-    return html
-
+    """Create a text input component."""
+    id = generate_id("text_input")
+    logger.debug(f"Creating text input component with id {id}, label: {label}")
+    component = {
+        "type": "text_input",
+        "id": id,
+        "label": label,
+        "placeholder": placeholder,
+        "value": get_component_state(id, "")
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def progress(label, value=0):
-    """
-    Create an HTML progress bar component.
-
-    Args:
-        label (str): Label for the progress bar.
-        value (int): Current progress value (0-100).
-    Returns:
-        str: HTML string for the progress bar.
-    """
+    """Create a progress component."""
     id = generate_id("progress")
-    html = f"""
-    <label for="{id}">{label}</label>
-    <progress id="{id}" value="{value}" max="100"></progress>
-    """
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating progress component with id {id}, label: {label}")
+    component = {
+        "type": "progress",
+        "id": id,
+        "label": label,
+        "value": value
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def spinner(label):
-    """
-    Create an HTML spinner component.
-
-    Args:
-        label (str): Label for the spinner.
-    Returns:
-        str: HTML string for the spinner.
-    """
+    """Create a spinner component."""
     id = generate_id("spinner")
-    html = f"""
-    <div id="{id}" class="spinner">
-        <label>{label}</label>
-        <div class="spinner-border" role="status"></div>
-    </div>
-    """
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating spinner component with id {id}, label: {label}")
+    component = {
+        "type": "spinner",
+        "id": id,
+        "label": label
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def alert(message, level="info"):
-    """
-    Create an HTML alert component.
-
-    Args:
-        message (str): Message for the alert.
-        level (str): Alert level ('info', 'warning', 'error', 'success').
-    Returns:
-        str: HTML string for the alert.
-    """
-    level_class = {
-        "info": "alert-info",
-        "warning": "alert-warning",
-        "error": "alert-danger",
-        "success": "alert-success",
-    }.get(level, "alert-info")
+    """Create an alert component."""
     id = generate_id("alert")
-    html = f'<div id="{id}" class="alert {level_class}">{message}</div>'
-    _rendered_html.append(html)
-    return html
-
+    logger.debug(f"Creating alert component with id {id}, message: {message}")
+    component = {
+        "type": "alert",
+        "id": id,
+        "message": message,
+        "level": level
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
 
 def image(src, alt="Image"):
-    """
-    Create an HTML image component.
-
-    Args:
-        src (str): Source URL for the image.
-        alt (str): Alternate text for the image.
-    Returns:
-        str: HTML string for the image.
-    """
+    """Create an image component."""
     id = generate_id("image")
-    html = f'<img id="{id}" src="{src}" alt="{alt}" style="max-width: 100%; height: auto;">'
-    _rendered_html.append(html)
-    return html
+    logger.debug(f"Creating image component with id {id}, src: {src}")
+    component = {
+        "type": "image",
+        "id": id,
+        "src": src,
+        "alt": alt
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component
+
+def text(markdown_str):
+    """Create a text/markdown component."""
+    id = generate_id("text")
+    logger.debug(f"Creating text component with id {id}")
+    component = {
+        "type": "text",
+        "id": id,
+        "content": markdown_str
+    }
+    logger.debug(f"Created component: {component}")
+    _rendered_html.append(component)
+    return component

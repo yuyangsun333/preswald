@@ -1,15 +1,25 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from preswald.scriptrunner import ScriptRunner
 from typing import Dict, Any, Optional
 import os
 import uvicorn
+import json
+from collections import defaultdict
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI()
 
 SCRIPT_PATH: Optional[str] = None
+
+# Store active websocket connections
+websocket_connections: Dict[str, WebSocket] = {}
 
 # Paths for production build
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +28,60 @@ ASSETS_DIR = os.path.join(STATIC_DIR, "assets")
 
 # Mount static files for production
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+app.mount("/public", StaticFiles(directory=os.path.join(BASE_DIR, "../frontend/public")), name="public")
+
+async def broadcast_message(message: dict):
+    """Broadcast message to all connected clients"""
+    logger.debug(f"Broadcasting message to {len(websocket_connections)} clients: {message}")
+    # Create a list of items to avoid dictionary modification during iteration
+    connections = list(websocket_connections.items())
+    
+    for client_id, connection in connections:
+        try:
+            # Simply try to send the message, FastAPI's WebSocket handles state internally
+            await connection.send_json(message)
+            logger.debug(f"Message sent to client {client_id}")
+        except Exception as e:
+            logger.error(f"Error sending message to client {client_id}: {e}")
+            # Remove dead connections after the loop
+            websocket_connections.pop(client_id, None)
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    """Handle WebSocket connections"""
+    logger.info(f"New WebSocket connection request from client: {client_id}")
+    await websocket.accept()
+    logger.info(f"WebSocket connection accepted for client: {client_id}")
+    
+    # Store the connection
+    websocket_connections[client_id] = websocket
+    
+    # Create ScriptRunner instance for this connection
+    script_runner = ScriptRunner(
+        session_id=client_id,
+        send_message_callback=broadcast_message
+    )
+    
+    try:
+        if SCRIPT_PATH:
+            logger.info(f"Starting script execution for client {client_id} with script: {SCRIPT_PATH}")
+            await script_runner.start(SCRIPT_PATH)
+            
+        while True:
+            data = await websocket.receive_json()
+            logger.debug(f"Received WebSocket message from client {client_id}: {data}")
+            
+            if data.get("type") == "component_update":
+                logger.info(f"Component update from client {client_id}: {data}")
+                await script_runner.rerun(new_widget_states=data.get("states", {}))
+            
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for client: {client_id}")
+    except Exception as e:
+        logger.error(f"Error in websocket connection for client {client_id}: {e}", exc_info=True)
+    finally:
+        # Make sure to clean up the connection in all cases
+        websocket_connections.pop(client_id, None)
 
 
 def _send_message_callback(msg: dict):
@@ -127,3 +191,13 @@ def start_server(script=None, port=8501):
         SCRIPT_PATH = os.path.abspath(script)
         print(f"Will run script: {SCRIPT_PATH}")
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+@app.get("/logo.png")
+async def serve_logo():
+    """Serve the logo file."""
+    logo_path = os.path.join(BASE_DIR, "../frontend/public/logo.png")
+    if os.path.exists(logo_path):
+        return FileResponse(logo_path)
+    # Return a default image or 404
+    raise HTTPException(status_code=404, detail="Logo not found")
