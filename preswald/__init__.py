@@ -1,5 +1,5 @@
 # Initialize the Preswald package
-__version__ = "0.1.12"
+__version__ = "0.1.13"
 
 from .core import track,  connect, plotly
 from .components import (

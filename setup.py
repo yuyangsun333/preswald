@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="preswald",                      # Your package name
-    version="0.1.12",                      # Initial version
+    version="0.1.13",                      # Initial version
     author="Structured",              # Author name
     author_email="founders@structuredlabs.com",   # Author email
     description="A lightweight data workflow SDK.",  # Short description
