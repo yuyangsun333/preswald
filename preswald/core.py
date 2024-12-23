@@ -1,10 +1,38 @@
 from markdown import markdown
 import pandas as pd
 from sqlalchemy import create_engine
+from preswald.state import StateManager
+from functools import wraps
+from typing import Dict, Any
+import json
+import logging
+import uuid
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Global store for connections and rendered components
 connections = {}
 _rendered_html = []
+_component_states: Dict[str, Any] = {}
+
+# Create a global state manager
+state_manager = StateManager()
+
+
+def track(func):
+    """Decorator to track function calls and their dependencies"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Register this function call
+        node_id = state_manager.track_function_call(func, args, kwargs)
+
+        # Get or compute the result
+        return state_manager.get_or_compute(node_id)
+
+    return wrapper
 
 
 def text(markdown_str):
@@ -70,11 +98,11 @@ def view(connection_name, limit=50):
     connection = get_connection(connection_name)
     if isinstance(connection, pd.DataFrame):
         html_table = connection.head(limit).to_html(
-            index=False, classes="table table-striped")
+            index=False, classes="table table-striped"
+        )
         _rendered_html.append(html_table)
     else:
-        raise TypeError(
-            f"Connection '{connection_name}' is not a valid DataFrame")
+        raise TypeError(f"Connection '{connection_name}' is not a valid DataFrame")
 
 
 def get_rendered_html():
@@ -98,8 +126,7 @@ def execute_query(connection_name, query):
     connection = get_connection(connection_name)
 
     if not isinstance(connection, create_engine().__class__):
-        raise TypeError(
-            f"Connection '{connection_name}' is not a database connection")
+        raise TypeError(f"Connection '{connection_name}' is not a database connection")
 
     with connection.connect() as conn:
         result = pd.read_sql(query, conn)
@@ -115,3 +142,46 @@ def plotly(fig):
     """
     html = fig.to_html(full_html=False, include_plotlyjs="cdn")
     _rendered_html.append(html)
+
+
+def update_component_state(component_id: str, value: Any):
+    """Update the state of a component"""
+    logger.debug(f"Updating state for component {component_id}: {value}")
+    _component_states[component_id] = value
+    
+def get_component_state(component_id: str, default: Any = None) -> Any:
+    """Get the current state of a component"""
+    return _component_states.get(component_id, default)
+
+def get_rendered_components():
+    """Get all rendered components as JSON"""
+    logger.debug(f"Getting rendered components, count: {len(_rendered_html)}")
+    components = []
+    
+    # Create a set to track unique component IDs
+    seen_ids = set()
+    
+    for item in _rendered_html:
+        try:
+            if isinstance(item, dict):
+                # Only add component if we haven't seen its ID before
+                if item.get('id') not in seen_ids:
+                    components.append(item)
+                    seen_ids.add(item.get('id'))
+                    logger.debug(f"Added component: {item}")
+            else:
+                # Convert HTML string to component data
+                component = {
+                    "type": "html",
+                    "content": str(item)
+                }
+                components.append(component)
+                logger.debug(f"Converted HTML to component: {component}")
+        except Exception as e:
+            logger.error(f"Error processing component: {e}", exc_info=True)
+    
+    # Clear the rendered_html list after processing
+    _rendered_html.clear()
+    
+    logger.info(f"Returning {len(components)} unique components")
+    return components

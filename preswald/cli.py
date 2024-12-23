@@ -54,6 +54,8 @@ size = "16px"
             f.write("# Add your secrets (e.g., API keys) here.\n")
         with open(os.path.join(name, ".gitignore"), "w") as f:
             f.write("secrets.toml\n")
+        with open(os.path.join(name, "README.md"), "w") as f:
+            f.write("README.md\n")
 
         click.echo(f"Initialized a new Preswald project in '{name}/'")
     except Exception as e:
