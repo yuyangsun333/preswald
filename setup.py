@@ -5,6 +5,7 @@ import shutil
 import sys
 from pathlib import Path
 
+
 class BuildFrontendCommand(Command):
     description = 'build frontend assets'
     user_options = []
@@ -25,21 +26,22 @@ class BuildFrontendCommand(Command):
     def _build_frontend(self):
         frontend_dir = Path(__file__).parent / 'frontend'
         if not frontend_dir.exists():
-            print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
+            print(f"Frontend directory not found at {
+                  frontend_dir}", file=sys.stderr)
             return
 
         print("Building frontend assets...")
         try:
             # Run npm install with error handling
-            result = subprocess.run(['npm', 'install'], cwd=frontend_dir, 
-                                 capture_output=True, text=True, check=False)
+            result = subprocess.run(['npm', 'install'], cwd=frontend_dir,
+                                    capture_output=True, text=True, check=False)
             if result.returncode != 0:
                 print(f"npm install failed: {result.stderr}", file=sys.stderr)
                 raise Exception("npm install failed")
 
             # Run npm build with error handling
-            result = subprocess.run(['npm', 'run', 'build'], cwd=frontend_dir, 
-                                 capture_output=True, text=True, check=False)
+            result = subprocess.run(['npm', 'run', 'build'], cwd=frontend_dir,
+                                    capture_output=True, text=True, check=False)
             if result.returncode != 0:
                 print(f"npm build failed: {result.stderr}", file=sys.stderr)
                 raise Exception("npm build failed")
@@ -51,7 +53,8 @@ class BuildFrontendCommand(Command):
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {
+                  str(e)}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):
@@ -88,10 +91,11 @@ class BuildFrontendCommand(Command):
                     else:
                         shutil.copy2(item, dest)
 
+
 # Setup configuration
 setup(
     name="preswald",
-    version="0.1.0",
+    version="0.1.14",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
