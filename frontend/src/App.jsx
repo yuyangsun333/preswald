@@ -7,6 +7,7 @@ import { websocket } from "./utils/websocket";
 const App = () => {
   const [components, setComponents] = useState([]);
   const [error, setError] = useState(null);
+  const [config, setConfig] = useState(null);
 
   useEffect(() => {
     console.log("App mounted, connecting to WebSocket");
@@ -21,6 +22,9 @@ const App = () => {
       } else if (message.type === "error") {
         console.error("Received error:", message.content);
         setError(message.content.message);
+      } else if (message.type === "config") {
+        console.log("Received config:", message.config);
+        setConfig(message.config);
       }
     });
 
@@ -29,6 +33,21 @@ const App = () => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const updateTitle = () => {
+      const title = config?.project?.title;
+      if (title) {
+        console.log("Updating document title to:", title);
+        document.title = title;
+      }
+    };
+
+    updateTitle();
+
+    document.addEventListener('visibilitychange', updateTitle);
+    return () => document.removeEventListener('visibilitychange', updateTitle);
+  }, [config]);
 
   const handleComponentUpdate = (componentId, value) => {
     console.log("Component update:", componentId, value);
