@@ -105,7 +105,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8,<3.13",
     include_package_data=True,
     package_data={
         'preswald': ['static/*', 'static/assets/*'],

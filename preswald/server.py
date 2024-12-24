@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from preswald.scriptrunner import ScriptRunner
+from preswald.themes import load_theme
 from typing import Dict, Any, Optional
 import os
 import uvicorn
@@ -59,7 +60,28 @@ async def serve_index():
     try:
         index_path = os.path.join(STATIC_DIR, "index.html")
         if os.path.exists(index_path):
-            return FileResponse(index_path)
+            # Load config if script path is set
+            title = "Preswald"  # Default title
+            if SCRIPT_PATH:
+                try:
+                    config_path = os.path.join(os.path.dirname(SCRIPT_PATH), "config.toml")
+                    print(f"Loading config from {config_path}")
+                    import toml
+                    config = toml.load(config_path)
+                    print(f"Loaded config in server.py: {config}")
+                    print(f"Loaded config in server.py title: {config.get('project', {}).get('title')}")
+                    if config.get("project", {}).get("title"):
+                        title = config["project"]["title"]
+                except Exception as e:
+                    logger.error(f"Error loading config for index: {e}")
+
+            # Read and modify the index.html content
+            with open(index_path, 'r') as f:
+                content = f.read()
+                # Replace the title tag content
+                content = content.replace('<title>Vite + React</title>', f'<title>{title}</title>')
+            
+            return HTMLResponse(content)
         else:
             logger.error(f"Index file not found at {index_path}")
             return HTMLResponse("<html><body><h1>Error: Frontend not properly installed</h1></body></html>")
@@ -136,7 +158,16 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     )
     
     try:
+        # Load and send config immediately after connection
         if SCRIPT_PATH:
+            config_path = os.path.join(os.path.dirname(SCRIPT_PATH), "config.toml")
+            config = load_theme(config_path)
+            await websocket.send_json({
+                "type": "config",
+                "config": config
+            })
+            logger.info(f"Sent config to client {client_id}")
+            
             logger.info(f"Starting script execution for client {client_id} with script: {SCRIPT_PATH}")
             await script_runner.start(SCRIPT_PATH)
             

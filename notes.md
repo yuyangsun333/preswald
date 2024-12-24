@@ -4,3 +4,7 @@
 4/ the initialisation should be done properly, first getting the components declared in the hello.py file and then passing them to the frontend
 5/ the websocket connection should be established properly, and the components should be rendered in the browser via websockets
 6/ the components should be rendered in the browser via websockets, and the websocket connection should be established properly
+
+python setup.py build_frontend sdist bdist_wheel
+pip install dist/preswald-0.1.0.tar.gz
+preswald run preswald_project/hello.py

@@ -29,6 +29,7 @@ def load_theme(config_path="config.toml"):
     try:
         # Load the configuration file
         config = toml.load(config_path)
+        print(f"Loaded config: {config}")
         theme = config.get("theme", {})
         # Merge with defaults to ensure all keys exist
         return merge_dicts(DEFAULT_THEME, theme)
