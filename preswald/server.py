@@ -4,7 +4,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from preswald.scriptrunner import ScriptRunner
 from preswald.themes import load_theme
-from preswald.core import update_component_state, get_component_state, get_all_component_states
+from preswald.core import (
+    update_component_state, 
+    get_component_state, 
+    get_all_component_states,
+    _rendered_html,
+    clear_component_states
+)
 from typing import Dict, Any, Optional
 import os
 import uvicorn
@@ -189,14 +195,25 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
             logger.info(f"[WebSocket] Sent config to client {client_id}")
             
             # Send current component states
+            current_states = get_all_component_states()
             await websocket.send_json({
                 "type": "initial_state",
-                "states": component_states
+                "states": current_states
             })
-            logger.info(f"[WebSocket] Sent initial states to client {client_id}: {component_states}")
+            logger.info(f"[WebSocket] Sent initial states to client {client_id}: {current_states}")
             
+            # Start script execution
             logger.info(f"[WebSocket] Starting script execution for client {client_id}")
             await script_runner.start(SCRIPT_PATH)
+            
+            # After script execution, send all components if they exist
+            components = list(_rendered_html)
+            if components:  # Only send if there are components
+                await websocket.send_json({
+                    "type": "components",
+                    "components": components
+                })
+                logger.info(f"[WebSocket] Sent components to client {client_id}: {components}")
             
         while True:
             try:
@@ -234,12 +251,29 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                             
                         except Exception as e:
                             logger.error(f"[Component Update] Error updating {component_id}: {e}", exc_info=True)
+                            await websocket.send_json({
+                                "type": "error",
+                                "content": {
+                                    "message": str(e),
+                                    "componentId": component_id
+                                }
+                            })
                     
                     try:
                         # Rerun script with new states
                         logger.info(f"[Script Rerun] Triggering with states: {states}")
                         await script_runner.rerun(new_widget_states=states)
                         logger.info("[Script Rerun] Completed successfully")
+                        
+                        # After rerun, send updated components if they exist
+                        components = list(_rendered_html)
+                        if components:  # Only send if there are components
+                            await websocket.send_json({
+                                "type": "components",
+                                "components": components
+                            })
+                            logger.info(f"[WebSocket] Sent updated components to client {client_id}")
+                        
                     except Exception as e:
                         logger.error(f"[Script Rerun] Error: {e}", exc_info=True)
                         await websocket.send_json({
@@ -251,8 +285,20 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 
             except json.JSONDecodeError as e:
                 logger.error(f"[WebSocket] Invalid JSON from client {client_id}: {e}")
+                await websocket.send_json({
+                    "type": "error",
+                    "content": {
+                        "message": "Invalid JSON message received"
+                    }
+                })
             except Exception as e:
                 logger.error(f"[WebSocket] Error processing message from client {client_id}: {e}")
+                await websocket.send_json({
+                    "type": "error",
+                    "content": {
+                        "message": str(e)
+                    }
+                })
                 raise
             
     except WebSocketDisconnect:
@@ -261,6 +307,15 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
         client_states.pop(client_id, None)
     except Exception as e:
         logger.error(f"[WebSocket] Error in connection for client {client_id}: {e}", exc_info=True)
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "content": {
+                    "message": str(e)
+                }
+            })
+        except:
+            pass
     finally:
         # Clean up the connection
         websocket_connections.pop(client_id, None)

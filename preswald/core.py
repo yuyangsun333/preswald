@@ -74,18 +74,6 @@ def track(func):
 
     return wrapper
 
-
-def text(markdown_str):
-    """
-    Render Markdown as HTML and store it in the global render list.
-
-    Args:
-        markdown_str (str): A string in Markdown format.
-    """
-    html = f"<div class='markdown-text'>{markdown(markdown_str)}</div>"
-    _rendered_html.append(html)
-
-
 def connect(source, name=None):
     """
     Connect to a data source such as a CSV, JSON, or database.

@@ -8,11 +8,13 @@ const App = () => {
   const [components, setComponents] = useState([]);
   const [error, setError] = useState(null);
   const [config, setConfig] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    console.log("[App] Mounting, connecting to WebSocket");
+    // Connect to WebSocket
     websocket.connect();
 
+    // Subscribe to WebSocket messages
     const unsubscribe = websocket.subscribe((message) => {
       console.log("[App] Received WebSocket message:", message);
       
@@ -27,7 +29,8 @@ const App = () => {
             });
             return {
               ...component,
-              value: currentState !== undefined ? currentState : component.value
+              value: currentState !== undefined ? currentState : component.value,
+              error: null
             };
           }
           return component;
@@ -38,6 +41,17 @@ const App = () => {
       else if (message.type === "error") {
         console.error("[App] Received error:", message.content);
         setError(message.content.message);
+        
+        // Update component error state if component-specific error
+        if (message.content.componentId) {
+          setComponents(prevComponents => 
+            prevComponents.map(component => 
+              component.id === message.content.componentId 
+                ? { ...component, error: message.content.message }
+                : component
+            )
+          );
+        }
       } 
       else if (message.type === "config") {
         console.log("[App] Received config:", message.config);
@@ -52,7 +66,11 @@ const App = () => {
                 oldValue: component.value,
                 newValue: message.value
               });
-              return { ...component, value: message.value };
+              return { 
+                ...component, 
+                value: message.value,
+                error: null // Clear any previous errors
+              };
             }
             return component;
           });
@@ -60,11 +78,20 @@ const App = () => {
           return updatedComponents;
         });
       }
+      else if (message.type === "connection_status") {
+        setIsConnected(message.connected);
+        if (!message.connected) {
+          setError("Lost connection to server. Attempting to reconnect...");
+        } else {
+          setError(null);
+        }
+      }
     });
 
+    // Cleanup on unmount
     return () => {
-      console.log("[App] Unmounting, cleaning up WebSocket");
       unsubscribe();
+      websocket.disconnect();
     };
   }, []);
 
@@ -98,7 +125,11 @@ const App = () => {
             oldValue: component.value,
             newValue: value
           });
-          return { ...component, value };
+          return { 
+            ...component, 
+            value,
+            error: null // Clear any previous errors
+          };
         }
         return component;
       });
@@ -106,14 +137,38 @@ const App = () => {
     });
     
     // Send update to WebSocket
-    websocket.updateComponentState(componentId, value);
+    try {
+      websocket.updateComponentState(componentId, value);
+    } catch (error) {
+      console.error("[App] Error updating component state:", error);
+      setComponents(prevComponents => 
+        prevComponents.map(component => 
+          component.id === componentId 
+            ? { ...component, error: error.message }
+            : component
+        )
+      );
+    }
   };
 
-  if (error) {
+  if (!isConnected) {
     return (
       <Layout>
-        <div className="text-red-600 p-4">
-          Error: {error}
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Connecting to server...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error && !components.length) {
+    return (
+      <Layout>
+        <div className="p-4 bg-red-50 border border-red-300 rounded-md">
+          <p className="text-red-700">{error}</p>
         </div>
       </Layout>
     );
@@ -121,8 +176,18 @@ const App = () => {
 
   return (
     <Layout>
+      {error && (
+        <div className="p-4 mb-4 bg-red-50 border border-red-300 rounded-md">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
       {components.length === 0 ? (
-        <div className="p-4">Loading components...</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading components...</p>
+          </div>
+        </div>
       ) : (
         <DynamicComponents 
           components={components}

@@ -116,10 +116,14 @@ class ScriptRunner:
         }
 
         try:
-            # Clear any existing components before running the script
-            from preswald.core import _rendered_html
-            _rendered_html.clear()
-            logger.debug("[ScriptRunner] Cleared existing components")
+            # Import core components
+            from preswald.core import _rendered_html, get_rendered_components
+            
+            # Only clear components if this is not a rerun with existing components
+            if not _rendered_html:
+                logger.debug("[ScriptRunner] No existing components, proceeding with script execution")
+            else:
+                logger.debug(f"[ScriptRunner] Found {len(_rendered_html)} existing components")
 
             # Capture script output
             with self._redirect_stdout():
@@ -131,31 +135,32 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Script executed")
 
                 # Get rendered components
-                from preswald.core import get_rendered_components
                 components = get_rendered_components()
                 logger.info(f"[ScriptRunner] Rendered {len(components)} components")
 
-                # Update components with current states
-                for component in components:
-                    if 'id' in component:
-                        # First check widget states, then fall back to core state
-                        current_state = self.widget_states.get(
-                            component['id'],
-                            get_component_state(component['id'])
-                        )
-                        if current_state is not None and 'value' in component:
-                            component['value'] = current_state
-                            logger.debug(f"[ScriptRunner] Set component {component['id']} value: {current_state}")
+                if components:  # Only process if we have components
+                    # Update components with current states
+                    for component in components:
+                        if 'id' in component:
+                            # First check widget states, then fall back to core state
+                            current_state = self.widget_states.get(
+                                component['id'],
+                                get_component_state(component['id'])
+                            )
+                            if current_state is not None and 'value' in component:
+                                component['value'] = current_state
+                                logger.debug(f"[ScriptRunner] Set component {component['id']} value: {current_state}")
 
-                try:
-                    # Send components to frontend
-                    await self.send_message({
-                        "type": "components",
-                        "components": components
-                    })
-                    logger.debug("[ScriptRunner] Sent components to frontend")
-                except Exception as send_error:
-                    logger.error(f"[ScriptRunner] Error sending components: {send_error}", exc_info=True)
+                    try:
+                        # Send components to frontend only if we have components
+                        await self.send_message({
+                            "type": "components",
+                            "components": components
+                        })
+                        logger.debug("[ScriptRunner] Sent components to frontend")
+                    except Exception as send_error:
+                        logger.error(f"[ScriptRunner] Error sending components: {send_error}", exc_info=True)
+                        raise
 
         except Exception as e:
             error_msg = f"Error executing script: {str(e)}\n{traceback.format_exc()}"
