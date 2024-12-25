@@ -3,10 +3,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 from preswald.state import StateManager
 from functools import wraps
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Callable
 import json
 import logging
 import uuid
+import threading
+from typing import Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,10 +18,48 @@ logger = logging.getLogger(__name__)
 connections = {}
 _rendered_html = []
 _component_states: Dict[str, Any] = {}
+_component_callbacks: Dict[str, List[Callable]] = {}
+_state_lock = threading.Lock()
 
 # Create a global state manager
 state_manager = StateManager()
 
+def register_component_callback(component_id: str, callback: Callable):
+    """Register a callback for component state changes"""
+    if component_id not in _component_callbacks:
+        _component_callbacks[component_id] = []
+    _component_callbacks[component_id].append(callback)
+    logger.debug(f"Registered callback for component {component_id}")
+
+def update_component_state(component_id: str, value: Any):
+    """Update the state of a component and trigger callbacks"""
+    with _state_lock:
+        logger.debug(f"Updating state for component {component_id}: {value}")
+        _component_states[component_id] = value
+        
+        # Trigger callbacks if any
+        if component_id in _component_callbacks:
+            for callback in _component_callbacks[component_id]:
+                try:
+                    callback(value)
+                except Exception as e:
+                    logger.error(f"Error in callback for component {component_id}: {e}")
+
+def get_component_state(component_id: str, default: Any = None) -> Any:
+    """Get the current state of a component"""
+    with _state_lock:
+        return _component_states.get(component_id, default)
+
+def get_all_component_states() -> Dict[str, Any]:
+    """Get all component states"""
+    with _state_lock:
+        return dict(_component_states)
+
+def clear_component_states():
+    """Clear all component states"""
+    with _state_lock:
+        _component_states.clear()
+        _component_callbacks.clear()
 
 def track(func):
     """Decorator to track function calls and their dependencies"""
@@ -33,18 +73,6 @@ def track(func):
         return state_manager.get_or_compute(node_id)
 
     return wrapper
-
-
-def text(markdown_str):
-    """
-    Render Markdown as HTML and store it in the global render list.
-
-    Args:
-        markdown_str (str): A string in Markdown format.
-    """
-    html = f"<div class='markdown-text'>{markdown(markdown_str)}</div>"
-    _rendered_html.append(html)
-
 
 def connect(source, name=None):
     """
@@ -144,15 +172,6 @@ def plotly(fig):
     _rendered_html.append(html)
 
 
-def update_component_state(component_id: str, value: Any):
-    """Update the state of a component"""
-    logger.debug(f"Updating state for component {component_id}: {value}")
-    _component_states[component_id] = value
-    
-def get_component_state(component_id: str, default: Any = None) -> Any:
-    """Get the current state of a component"""
-    return _component_states.get(component_id, default)
-
 def get_rendered_components():
     """Get all rendered components as JSON"""
     logger.debug(f"Getting rendered components, count: {len(_rendered_html)}")
@@ -164,11 +183,17 @@ def get_rendered_components():
     for item in _rendered_html:
         try:
             if isinstance(item, dict):
-                # Only add component if we haven't seen its ID before
-                if item.get('id') not in seen_ids:
-                    components.append(item)
-                    seen_ids.add(item.get('id'))
-                    logger.debug(f"Added component: {item}")
+                # Ensure component has current state
+                if 'id' in item:
+                    component_id = item['id']
+                    if component_id not in seen_ids:
+                        # Update component with current state
+                        if 'value' in item:
+                            current_state = get_component_state(component_id, item['value'])
+                            item['value'] = current_state
+                        components.append(item)
+                        seen_ids.add(component_id)
+                        logger.debug(f"Added component with state: {item}")
             else:
                 # Convert HTML string to component data
                 component = {

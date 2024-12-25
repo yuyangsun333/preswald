@@ -146,7 +146,8 @@ def text(markdown_str):
     component = {
         "type": "text",
         "id": id,
-        "content": markdown_str
+        "markdown": markdown_str,
+        "value": markdown_str
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)

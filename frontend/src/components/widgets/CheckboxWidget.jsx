@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 
-const CheckboxWidget = ({ label, defaultChecked, description, id }) => {
-  const [checked, setChecked] = useState(defaultChecked);
+const CheckboxWidget = ({ label, checked, description, id, onChange }) => {
+  const handleChange = (e) => {
+    console.log("[CheckboxWidget] Change event:", {
+      id,
+      checked: e.target.checked,
+      timestamp: new Date().toISOString()
+    });
+    onChange?.(e.target.checked);
+  };
 
   return (
     <fieldset>
@@ -15,7 +22,7 @@ const CheckboxWidget = ({ label, defaultChecked, description, id }) => {
                 name={id}
                 type="checkbox"
                 checked={checked}
-                onChange={() => setChecked(!checked)}
+                onChange={handleChange}
                 aria-describedby={`${id}-description`}
                 className="col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white checked:border-blue-600 checked:bg-blue-600 indeterminate:border-blue-600 indeterminate:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
               />

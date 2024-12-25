@@ -16,123 +16,155 @@ import UnknownWidget from "./widgets/UnknownWidget";
 
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   const handleUpdate = (componentId, value) => {
+    console.log(`[DynamicComponents] Component update triggered:`, {
+      componentId,
+      value,
+      timestamp: new Date().toISOString()
+    });
     onComponentUpdate(componentId, value);
+  };
+
+  const renderComponent = (component, index) => {
+    const componentId = component.id || `component-${index}`;
+    const commonProps = {
+      key: componentId,
+      id: componentId,
+      ...component,
+    };
+
+    try {
+      switch (component.type) {
+        case "button":
+          return (
+            <ButtonWidget
+              {...commonProps}
+              onClick={() => handleUpdate(componentId, true)}
+            />
+          );
+
+        case "slider":
+          return (
+            <SliderWidget
+              {...commonProps}
+              min={component.min || 0}
+              max={component.max || 100}
+              step={component.step || 1}
+              value={component.value !== undefined ? component.value : 50}
+              onChange={(value) => handleUpdate(componentId, value)}
+            />
+          );
+
+        case "text_input":
+          return (
+            <TextInputWidget
+              {...commonProps}
+              value={component.value || ""}
+              onChange={(value) => handleUpdate(componentId, value)}
+            />
+          );
+
+        case "checkbox":
+          return (
+            <CheckboxWidget
+              {...commonProps}
+              checked={!!component.value}
+              onChange={(value) => handleUpdate(componentId, value)}
+            />
+          );
+
+        case "selectbox":
+          return (
+            <SelectboxWidget
+              {...commonProps}
+              options={component.options || []}
+              value={component.value || (component.options && component.options[0]) || ""}
+              onChange={(value) => handleUpdate(componentId, value)}
+            />
+          );
+
+        case "progress":
+          return (
+            <ProgressWidget
+              {...commonProps}
+              value={component.value !== undefined ? component.value : 0}
+              steps={component.steps}
+            />
+          );
+
+        case "spinner":
+          return <SpinnerWidget {...commonProps} />;
+
+        case "alert":
+          return (
+            <AlertWidget
+              {...commonProps}
+              level={component.level || "info"}
+            />
+          );
+
+        case "image":
+          return (
+            <ImageWidget
+              {...commonProps}
+              size={component.size || "medium"}
+              rounded={component.rounded !== undefined ? component.rounded : true}
+            />
+          );
+
+        case "text":
+          return (
+            <MarkdownRendererWidget
+              {...commonProps}
+              markdown={component.markdown || component.content || component.value || ""}
+              error={component.error}
+            />
+          );
+
+        case "table":
+          return (
+            <TableViewerWidget 
+              {...commonProps}
+              data={component.data || []}
+            />
+          );
+
+        case "connection":
+          return <ConnectionInterfaceWidget {...commonProps} />;
+
+        case "plot":
+          return (
+            <DataVisualizationWidget 
+              {...commonProps}
+              data={component.data || {}}
+              layout={component.layout || {}}
+              config={component.config || {}}
+            />
+          );
+
+        default:
+          console.warn(`Unknown component type: ${component.type}`);
+          return <UnknownWidget {...commonProps} />;
+      }
+    } catch (error) {
+      console.error(`Error rendering component ${componentId}:`, error);
+      return (
+        <div className="text-red-600 p-4">
+          Error rendering component: {error.message}
+        </div>
+      );
+    }
   };
 
   return (
     <div className="flex flex-wrap gap-4 p-4">
-      {components.map((component, index) => {
-        let renderedComponent;
-
-        switch (component.type) {
-          case "button":
-            renderedComponent = (
-              <ButtonWidget
-                key={component.id}
-                {...component}
-                onClick={() => handleUpdate(component.id, true)}
-              />
-            );
-            break;
-          case "slider":
-            renderedComponent = (
-              <SliderWidget
-                key={component.id}
-                {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
-              />
-            );
-            break;
-          case "text_input":
-            renderedComponent = (
-              <TextInputWidget
-                key={component.id}
-                {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
-              />
-            );
-            break;
-          case "checkbox":
-            renderedComponent = (
-              <CheckboxWidget
-                key={component.id}
-                {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
-              />
-            );
-            break;
-          case "selectbox":
-            renderedComponent = (
-              <SelectboxWidget
-                key={component.id}
-                {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
-              />
-            );
-            break;
-          case "progress":
-            renderedComponent = (
-              <ProgressWidget
-                key={component.id}
-                {...component}
-              />
-            );
-            break;
-          case "spinner":
-            renderedComponent = (
-              <SpinnerWidget
-                key={component.id}
-                {...component}
-              />
-            );
-            break;
-          case "alert":
-            renderedComponent = (
-              <AlertWidget
-                key={component.id}
-                {...component}
-              />
-            );
-            break;
-          case "image":
-            renderedComponent = (
-              <ImageWidget
-                key={component.id}
-                {...component}
-              />
-            );
-            break;
-          case "text":
-            renderedComponent = (
-              <MarkdownRendererWidget
-                key={component.id}
-                {...component}
-              />
-            );
-            break;
-          case "table":
-            renderedComponent = <TableViewerWidget key={index} data={component.data} />;
-            break;
-          case "connection":
-            renderedComponent = <ConnectionInterfaceWidget key={index} />;
-            break;
-          case "plot":
-            renderedComponent = <DataVisualizationWidget key={index} data={component.data} />;
-            break;
-          default:
-            renderedComponent = <UnknownWidget key={index} />;
-            break;
-        }
-
-        return (
-          <div
-            key={index}
-            className="flex-1 min-w-[250px] max-w-[33%] p-4 bg-white border border-gray-200 rounded-md shadow-sm"
-          >
-            {renderedComponent}
-          </div>
-        );
-      })}
+      {components.map((component, index) => (
+        <div
+          key={component.id || `component-${index}`}
+          className="flex-1 min-w-[250px] max-w-[33%] p-4 bg-white border border-gray-200 rounded-md shadow-sm"
+        >
+          {renderComponent(component, index)}
+        </div>
+      ))}
     </div>
   );
 };
