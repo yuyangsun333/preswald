@@ -26,8 +26,7 @@ class BuildFrontendCommand(Command):
     def _build_frontend(self):
         frontend_dir = Path(__file__).parent / 'frontend'
         if not frontend_dir.exists():
-            print(f"Frontend directory not found at {
-                  frontend_dir}", file=sys.stderr)
+            print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
             return
 
         print("Building frontend assets...")
@@ -53,8 +52,7 @@ class BuildFrontendCommand(Command):
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {
-                  str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):
@@ -95,7 +93,7 @@ class BuildFrontendCommand(Command):
 # Setup configuration
 setup(
     name="preswald",
-    version="0.1.14",
+    version="0.1.15",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
@@ -119,6 +117,17 @@ setup(
         'websockets>=10.0,<11.0',
         'python-multipart>=0.0.5,<0.1.0',
         'httpx>=0.23.0,<1.0.0',
+        'Markdown>=3.4.0',
+        'pandas>=1.5',
+        'pytest>=8.3',
+        'toml==0.10.2',
+        'SQLAlchemy==2.0.36',
+        'plotly==5.24.1',
+        'Jinja2==3.1.4',
+        'click==8.1.7',
+        'networkx==3.4.2',
+        'Requests==2.32.3',
+        'setuptools==75.1.0',
     ],
     entry_points={
         'console_scripts': [
