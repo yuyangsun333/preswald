@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from preswald.scriptrunner import ScriptRunner
 from preswald.themes import load_theme
+from preswald.core import update_component_state, get_component_state, get_all_component_states
 from typing import Dict, Any, Optional
 import os
 import uvicorn
@@ -30,8 +31,12 @@ app.add_middleware(
 
 SCRIPT_PATH: Optional[str] = None
 
-# Store active websocket connections
+# Store active websocket connections and their states
 websocket_connections: Dict[str, WebSocket] = {}
+client_states: Dict[str, Dict[str, Any]] = {}
+
+# Store persistent component states
+component_states: Dict[str, Any] = {}
 
 try:
     # Get the package's static directory using pkg_resources
@@ -127,34 +132,49 @@ async def serve_logo():
 
 async def broadcast_message(message: dict):
     """Broadcast message to all connected clients"""
-    logger.debug(f"Broadcasting message to {len(websocket_connections)} clients: {message}")
-    # Create a list of items to avoid dictionary modification during iteration
-    connections = list(websocket_connections.items())
+    logger.debug(f"[Broadcast] Sending to {len(websocket_connections)} clients: {message}")
     
-    for client_id, connection in connections:
+    for client_id, connection in list(websocket_connections.items()):
         try:
-            # Simply try to send the message, FastAPI's WebSocket handles state internally
             await connection.send_json(message)
-            logger.debug(f"Message sent to client {client_id}")
+            logger.debug(f"[Broadcast] Sent to client {client_id}")
         except Exception as e:
-            logger.error(f"Error sending message to client {client_id}: {e}")
-            # Remove dead connections after the loop
+            logger.error(f"[Broadcast] Error sending to client {client_id}: {e}")
+            # Remove dead connections
             websocket_connections.pop(client_id, None)
+
+async def broadcast_state_update(client_id: str, component_id: str, value: Any):
+    """Broadcast component state update to all clients except sender"""
+    message = {
+        "type": "component_update",
+        "component_id": component_id,
+        "value": value
+    }
+    
+    for ws_id, connection in websocket_connections.items():
+        if ws_id != client_id:  # Don't send back to sender
+            try:
+                await connection.send_json(message)
+                logger.debug(f"[State Update] Broadcasted to client {ws_id}: {component_id} = {value}")
+            except Exception as e:
+                logger.error(f"[State Update] Error broadcasting to client {ws_id}: {e}")
 
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     """Handle WebSocket connections"""
-    logger.info(f"New WebSocket connection request from client: {client_id}")
+    logger.info(f"[WebSocket] New connection request from client: {client_id}")
     await websocket.accept()
-    logger.info(f"WebSocket connection accepted for client: {client_id}")
+    logger.info(f"[WebSocket] Connection accepted for client: {client_id}")
     
     # Store the connection
     websocket_connections[client_id] = websocket
+    client_states[client_id] = {}
     
     # Create ScriptRunner instance for this connection
     script_runner = ScriptRunner(
         session_id=client_id,
-        send_message_callback=broadcast_message
+        send_message_callback=broadcast_message,
+        initial_states=component_states  # Pass the persistent states
     )
     
     try:
@@ -166,26 +186,86 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 "type": "config",
                 "config": config
             })
-            logger.info(f"Sent config to client {client_id}")
+            logger.info(f"[WebSocket] Sent config to client {client_id}")
             
-            logger.info(f"Starting script execution for client {client_id} with script: {SCRIPT_PATH}")
+            # Send current component states
+            await websocket.send_json({
+                "type": "initial_state",
+                "states": component_states
+            })
+            logger.info(f"[WebSocket] Sent initial states to client {client_id}: {component_states}")
+            
+            logger.info(f"[WebSocket] Starting script execution for client {client_id}")
             await script_runner.start(SCRIPT_PATH)
             
         while True:
-            data = await websocket.receive_json()
-            logger.debug(f"Received WebSocket message from client {client_id}: {data}")
-            
-            if data.get("type") == "component_update":
-                logger.info(f"Component update from client {client_id}: {data}")
-                await script_runner.rerun(new_widget_states=data.get("states", {}))
+            try:
+                data = await websocket.receive_json()
+                logger.debug(f"[WebSocket] Received message from client {client_id}: {data}")
+                
+                if data.get("type") == "component_update":
+                    logger.info(f"[Component Update] Received from client {client_id}:")
+                    logger.info(f"  - Raw data: {data}")
+                    states = data.get("states", {})
+                    
+                    if not states:
+                        logger.warning(f"[Component Update] No states in update from client {client_id}")
+                        continue
+                    
+                    # Update component states
+                    for component_id, value in states.items():
+                        try:
+                            # Store old state for logging
+                            old_state = component_states.get(component_id)
+                            logger.info(f"[Component Update] Processing {component_id}:")
+                            logger.info(f"  - Old value: {old_state}")
+                            logger.info(f"  - New value: {value}")
+                            
+                            # Update both persistent and core states
+                            component_states[component_id] = value
+                            update_component_state(component_id, value)
+                            client_states[client_id][component_id] = value
+                            
+                            logger.info(f"  - Updated persistent state: {component_states[component_id]}")
+                            
+                            # Broadcast state update to other clients
+                            await broadcast_state_update(client_id, component_id, value)
+                            logger.info(f"  - Broadcasted to other clients")
+                            
+                        except Exception as e:
+                            logger.error(f"[Component Update] Error updating {component_id}: {e}", exc_info=True)
+                    
+                    try:
+                        # Rerun script with new states
+                        logger.info(f"[Script Rerun] Triggering with states: {states}")
+                        await script_runner.rerun(new_widget_states=states)
+                        logger.info("[Script Rerun] Completed successfully")
+                    except Exception as e:
+                        logger.error(f"[Script Rerun] Error: {e}", exc_info=True)
+                        await websocket.send_json({
+                            "type": "error",
+                            "content": {
+                                "message": str(e)
+                            }
+                        })
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"[WebSocket] Invalid JSON from client {client_id}: {e}")
+            except Exception as e:
+                logger.error(f"[WebSocket] Error processing message from client {client_id}: {e}")
+                raise
             
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected for client: {client_id}")
+        logger.info(f"[WebSocket] Client disconnected: {client_id}")
+        # Clean up client state
+        client_states.pop(client_id, None)
     except Exception as e:
-        logger.error(f"Error in websocket connection for client {client_id}: {e}", exc_info=True)
+        logger.error(f"[WebSocket] Error in connection for client {client_id}: {e}", exc_info=True)
     finally:
-        # Make sure to clean up the connection in all cases
+        # Clean up the connection
         websocket_connections.pop(client_id, None)
+        client_states.pop(client_id, None)
+        logger.info(f"[WebSocket] Cleaned up connection for client {client_id}")
 
 
 def _send_message_callback(msg: dict):
@@ -264,9 +344,8 @@ def start_server(script=None, port=8501):
     print(f"Starting Preswald server at http://localhost:{port}")
     global SCRIPT_PATH
 
-    # Store the script path at module level so websocket handler can access it
     if script:
-        # Convert to absolute path to avoid any relative path issues
         SCRIPT_PATH = os.path.abspath(script)
         print(f"Will run script: {SCRIPT_PATH}")
+    
     uvicorn.run(app, host="0.0.0.0", port=port)

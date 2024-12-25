@@ -16,72 +16,98 @@ import UnknownWidget from "./widgets/UnknownWidget";
 
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   const handleUpdate = (componentId, value) => {
+    console.log(`[DynamicComponents] Component update triggered:`, {
+      componentId,
+      value,
+      timestamp: new Date().toISOString()
+    });
     onComponentUpdate(componentId, value);
   };
 
   return (
     <div className="flex flex-wrap gap-4 p-4">
       {components.map((component, index) => {
+        const componentId = component.id || `component-${index}`;
         let renderedComponent;
 
         switch (component.type) {
           case "button":
             renderedComponent = (
               <ButtonWidget
-                key={component.id}
+                key={componentId}
                 {...component}
-                onClick={() => handleUpdate(component.id, true)}
+                onClick={() => {
+                  console.log(`[Button] Clicked:`, componentId);
+                  handleUpdate(componentId, true);
+                }}
               />
             );
             break;
           case "slider":
             renderedComponent = (
               <SliderWidget
-                key={component.id}
+                key={componentId}
                 {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
+                value={component.value}
+                onChange={(value) => {
+                  console.log(`[Slider] Value changed:`, { componentId, value });
+                  handleUpdate(componentId, value);
+                }}
               />
             );
             break;
           case "text_input":
             renderedComponent = (
               <TextInputWidget
-                key={component.id}
+                key={componentId}
                 {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
+                value={component.value}
+                onChange={(value) => {
+                  console.log(`[TextInput] Value changed:`, { componentId, value });
+                  handleUpdate(componentId, value);
+                }}
               />
             );
             break;
           case "checkbox":
             renderedComponent = (
               <CheckboxWidget
-                key={component.id}
+                key={componentId}
                 {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
+                checked={component.value}
+                onChange={(value) => {
+                  console.log(`[Checkbox] Value changed:`, { componentId, value });
+                  handleUpdate(componentId, value);
+                }}
               />
             );
             break;
           case "selectbox":
             renderedComponent = (
               <SelectboxWidget
-                key={component.id}
+                key={componentId}
                 {...component}
-                onChange={(value) => handleUpdate(component.id, value)}
+                value={component.value}
+                onChange={(value) => {
+                  console.log(`[Selectbox] Value changed:`, { componentId, value });
+                  handleUpdate(componentId, value);
+                }}
               />
             );
             break;
           case "progress":
             renderedComponent = (
               <ProgressWidget
-                key={component.id}
+                key={componentId}
                 {...component}
+                value={component.value}
               />
             );
             break;
           case "spinner":
             renderedComponent = (
               <SpinnerWidget
-                key={component.id}
+                key={componentId}
                 {...component}
               />
             );
@@ -89,7 +115,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
           case "alert":
             renderedComponent = (
               <AlertWidget
-                key={component.id}
+                key={componentId}
                 {...component}
               />
             );
@@ -97,7 +123,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
           case "image":
             renderedComponent = (
               <ImageWidget
-                key={component.id}
+                key={componentId}
                 {...component}
               />
             );
@@ -105,28 +131,46 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
           case "text":
             renderedComponent = (
               <MarkdownRendererWidget
-                key={component.id}
+                key={componentId}
                 {...component}
               />
             );
             break;
           case "table":
-            renderedComponent = <TableViewerWidget key={index} data={component.data} />;
+            renderedComponent = (
+              <TableViewerWidget 
+                key={componentId} 
+                data={component.data} 
+              />
+            );
             break;
           case "connection":
-            renderedComponent = <ConnectionInterfaceWidget key={index} />;
+            renderedComponent = (
+              <ConnectionInterfaceWidget 
+                key={componentId} 
+              />
+            );
             break;
           case "plot":
-            renderedComponent = <DataVisualizationWidget key={index} data={component.data} />;
+            renderedComponent = (
+              <DataVisualizationWidget 
+                key={componentId} 
+                data={component.data} 
+              />
+            );
             break;
           default:
-            renderedComponent = <UnknownWidget key={index} />;
+            renderedComponent = (
+              <UnknownWidget 
+                key={componentId} 
+              />
+            );
             break;
         }
 
         return (
           <div
-            key={index}
+            key={componentId}
             className="flex-1 min-w-[250px] max-w-[33%] p-4 bg-white border border-gray-200 rounded-md shadow-sm"
           >
             {renderedComponent}
