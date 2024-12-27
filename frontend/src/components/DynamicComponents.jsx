@@ -156,11 +156,11 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
   };
 
   return (
-    <div className="flex flex-wrap gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4">
       {components.map((component, index) => (
         <div
           key={component.id || `component-${index}`}
-          className="flex-1 min-w-[250px] max-w-[33%] p-4 bg-white border border-gray-200 rounded-md shadow-sm"
+          className="w-full p-4 bg-white"
         >
           {renderComponent(component, index)}
         </div>

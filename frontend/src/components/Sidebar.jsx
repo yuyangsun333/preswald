@@ -44,7 +44,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation }) {
                               item.current
                                 ? 'bg-gray-50 text-blue-600'
                                 : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600',
-                              'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
+                              'group flex gap-x-3 rounded-md p-2 text-sm/6 font-medium'
                             )}
                           >
                             <item.icon
@@ -81,8 +81,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation }) {
       </Dialog>
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[17.188rem] lg:max-w-[21.875rem] lg:min-w-[15.625rem] lg:flex-col">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200  border-[#eeeff1] bg-[#FBFBFB] px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
             <img
               src="logo.png"
@@ -102,15 +102,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation }) {
                         href={item.href}
                         className={classNames(
                           item.current
-                            ? 'bg-gray-50 text-blue-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600',
+                            ? 'bg-gray-100 text-black'
+                            : 'text-gray-700 hover:text-black hover:bg-sidebar-link-hover',
                           'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                         )}
                       >
                         <item.icon
                           aria-hidden="true"
                           className={classNames(
-                            item.current ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600',
+                            item.current ? 'text-amber-600' : 'text-gray-400 group-hover:text-amber-600',
                             'size-6 shrink-0'
                           )}
                         />
