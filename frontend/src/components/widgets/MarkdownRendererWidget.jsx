@@ -1,5 +1,5 @@
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const MarkdownRendererWidget = ({ markdown, value, error }) => {
   const content = markdown || value || '';
@@ -14,7 +14,7 @@ const MarkdownRendererWidget = ({ markdown, value, error }) => {
 
   return (
     <div className="prose prose-sm max-w-none">
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );
 };

@@ -17,10 +17,12 @@ min_magnitude = slider("Minimum Magnitude", min_val=0.0,
 data = pd.DataFrame(connections[connection_name])
 # Convert Magnitude column to numeric, handling any non-numeric values
 data['Magnitude'] = pd.to_numeric(data['Magnitude'], errors='coerce')
-filtered_data = data[data['Magnitude'] >= min_magnitude.get('value', min_magnitude)]
+filtered_data = data[data['Magnitude'] >=
+                     min_magnitude.get('value', min_magnitude)]
 
 # Summary statistics
-text(f"### Total Earthquakes with Magnitude ≥ {min_magnitude.get('value', min_magnitude)}: {len(filtered_data)}")
+text(f"### Total Earthquakes with Magnitude ≥ {
+     min_magnitude.get('value', min_magnitude)}: {len(filtered_data)}")
 
 # Interactive map using Plotly
 text("## Earthquake Locations")
@@ -36,7 +38,6 @@ fig_map = px.scatter_geo(
 plotly(fig_map)
 
 # Magnitude distribution
-text("## Magnitude Distribution")
 fig_hist = px.histogram(
     filtered_data,
     x="Magnitude",
@@ -46,7 +47,6 @@ fig_hist = px.histogram(
 plotly(fig_hist)
 
 # Depth vs. Magnitude scatter plot
-text("## Depth vs. Magnitude")
 fig_scatter = px.scatter(
     filtered_data,
     x="Depth",
