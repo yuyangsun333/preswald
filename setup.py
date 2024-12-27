@@ -95,7 +95,7 @@ class BuildFrontendCommand(Command):
 # Setup configuration
 setup(
     name="preswald",
-    version="0.1.17",
+    version="0.1.18",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
@@ -127,7 +127,7 @@ setup(
         'plotly==5.24.1',
         'Jinja2==3.1.4',
         'click==8.1.7',
-        'networkx==3.4.2',
+        'networkx>=3.0',
         'Requests==2.32.3',
         'setuptools==75.1.0',
     ],
