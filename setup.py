@@ -95,7 +95,7 @@ class BuildFrontendCommand(Command):
 # Setup configuration
 setup(
     name="preswald",
-    version="0.1.18",
+    version="0.1.19",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
