@@ -1,6 +1,6 @@
 const Content = ({ children }) => {
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
+    <div className="overflow-y-auto">
       {children}
     </div>
   );

@@ -5,19 +5,17 @@ import Content from "./Content";
 import Sidebar from "./Sidebar";
 import Topbar from "./TopBar";
 
-import { HomeIcon, ChartBarIcon, ServerIcon, GlobeAltIcon } from "@heroicons/react/24/solid";
+import { HomeIcon, ChartBarIcon, MagnifyingGlassIcon, ServerIcon, GlobeAltIcon, ClockIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-  { name: 'Connections', href: '/connections', icon: ServerIcon, current: false },
+  { name: 'Queries', href: '/queries', icon: MagnifyingGlassIcon, current: false },
   { name: 'Metrics', href: '/metrics', icon: ChartBarIcon, current: false },
+  { name: 'Schedules', href: '/schedules', icon: ClockIcon, current: false },  
+  { name: 'Connections', href: '/connections', icon: ServerIcon, current: false },
   { name: 'Entities', href: '/entities', icon: GlobeAltIcon, current: false },
+  { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon, current: false },
 ];
-
-const userNavigation = [
-  { name: 'Your profile', href: '#' },
-  { name: 'Sign out', href: '#' },
-]
 
 export default function Example({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,8 +28,8 @@ export default function Example({ children }) {
         navigation={navigation}
       />
       <div className="lg:pl-80">
-        <Topbar setSidebarOpen={setSidebarOpen} userNavigation={userNavigation} />
-        <main className="py-10">
+        <Topbar setSidebarOpen={setSidebarOpen} />
+        <main>
           <Content>{children}</Content>
         </main>
       </div>
