@@ -1,16 +1,5 @@
-[tool.poetry.dependencies]
-python = "^3.7"
-markdown = "^3.4"
-httpx = "^0.23"
-fastapi = "^0.95"
-uvicorn = "^0.21"
-pandas = "^1.5"
-pytest = "^8.3"
-toml = "0.10.2"
-SQLAlchemy = "2.0.36"
-plotly = "5.24.1"
-Jinja2 = "3.1.4"
-click = "8.1.7"
-networkx = "3.4.2"
-Requests = "2.32.3"
-setuptools = "75.1.0"
+[build-system]
+# We specify setuptools as our build system - this is what pip will use to build your package
+# The version requirement ensures we have new enough setuptools to handle modern Python packaging
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
