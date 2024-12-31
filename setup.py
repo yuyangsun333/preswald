@@ -26,8 +26,7 @@ class BuildFrontendCommand(Command):
     def _build_frontend(self):
         frontend_dir = Path(__file__).parent / 'frontend'
         if not frontend_dir.exists():
-            print(f"Frontend directory not found at {
-                  frontend_dir}", file=sys.stderr)
+            print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
             return
 
         print("Building frontend assets...")
@@ -53,8 +52,7 @@ class BuildFrontendCommand(Command):
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {
-                  str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):
@@ -92,8 +90,33 @@ class BuildFrontendCommand(Command):
                         shutil.copy2(item, dest)
 
 
-# Setup configuration
+# Define core dependencies needed for the package to run
+CORE_DEPENDENCIES = [
+    'fastapi>=0.68.0,<1.0.0',
+    'uvicorn>=0.15.0,<1.0.0',
+    'websockets>=10.0,<11.0',
+    'python-multipart>=0.0.5,<0.1.0',
+    'httpx>=0.23.0,<1.0.0',
+    'Markdown>=3.4.0',
+    'pandas>=1.5',
+    'toml==0.10.2',
+    'SQLAlchemy==2.0.36',
+    'plotly==5.24.1',
+    'Jinja2==3.1.4',
+    'click==8.1.7',
+    'networkx>=3.0',
+    'Requests==2.32.3',
+]
+
+# Define additional dependencies for development
+DEV_DEPENDENCIES = [
+    'pytest>=8.3',
+    'setuptools==75.1.0',
+    'build',
+]
+
 setup(
+    # Basic package metadata
     name="preswald",
     version="0.1.19",
     author="Structured",
@@ -103,40 +126,36 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
     license="Apache License 2.0",
+    
+    # Package configuration
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
+    
+    # Package data and dependencies
     include_package_data=True,
     package_data={
         'preswald': ['static/*', 'static/assets/*'],
     },
-    install_requires=[
-        'fastapi>=0.68.0,<1.0.0',
-        'uvicorn>=0.15.0,<1.0.0',
-        'websockets>=10.0,<11.0',
-        'python-multipart>=0.0.5,<0.1.0',
-        'httpx>=0.23.0,<1.0.0',
-        'Markdown>=3.4.0',
-        'pandas>=1.5',
-        'pytest>=8.3',
-        'toml==0.10.2',
-        'SQLAlchemy==2.0.36',
-        'plotly==5.24.1',
-        'Jinja2==3.1.4',
-        'click==8.1.7',
-        'networkx>=3.0',
-        'Requests==2.32.3',
-        'setuptools==75.1.0',
-    ],
+    python_requires='>=3.7',
+    
+    # Dependencies
+    install_requires=CORE_DEPENDENCIES,
+    extras_require={
+        'dev': DEV_DEPENDENCIES,
+    },
+    
+    # Command line interface registration
     entry_points={
         'console_scripts': [
             'preswald=preswald.cli:cli',
         ],
     },
-    python_requires='>=3.7',
+    
+    # Custom commands
     cmdclass={
         'build_frontend': BuildFrontendCommand,
     },
