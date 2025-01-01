@@ -102,38 +102,6 @@ Open your browser, and voilà—your first Preswald app is live!
 
 ---
 
-### **🌍 Local Deployment**
-
-When you’re ready to share your app with colleagues or test it outside your development environment, deploy it locally. This process is as simple as pie.
-
-#### **Steps for Local Deployment:**
-
-1. **Prepare Your Environment**  
-   Make sure all your dependencies are installed:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Run Your App on a Custom Port**  
-   Want to run your app on a different port? No problem! Just specify the port:
-
-   ```bash
-   preswald run hello.py --port 8080
-   ```
-
-3. **Share Your Local App**  
-   If you’re on the same network, others can access your app by visiting your machine’s IP address. Use `ifconfig` (Linux/Mac) or `ipconfig` (Windows) to find your local IP, and share the URL:
-
-   ```
-   http://<your-ip>:8080
-   ```
-
-4. **Keep Your App Alive**  
-   Use tools like `tmux` or `screen` to keep the app running even when you close the terminal.
-
----
-
 ### **💡 Examples**
 
 #### **Example 1: Hello World**
