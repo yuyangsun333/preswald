@@ -8,15 +8,20 @@ _Your lightweight companion for building simple, interactive, and dynamic data a
 
 ---
 
-### **What is Preswald?**
+## **What is Preswald?**
 
-Preswald is your no-fuss, Python-based framework for building interactive data apps—no HTML, JavaScript, or CSS required. Whether you're a data analyst, scientist, or curious tinkerer, Preswald lets you connect to data, build interactive components, and deploy your ideas faster than you can say “dashboard.”
+Preswald is a full-stack platform for building, deploying, and managing interactive data applications. It combines ingestion, storage, transformation, and visualization into one lightweight and powerful SDK. Whether you're prototyping internal tools or deploying production-grade apps, Preswald reduces complexity and cost without compromising flexibility.
+
+- Code-First Simplicity: Minimal Python and SQL for powerful apps.
+- End-to-End Coverage: Handle ingestion, ETL, and visualization in one platform.
+- Production-Ready: Single-command deployment to the cloud or containers.
+- Cost-Effective: Avoid the overhead of the modern data stack while retaining key functionality.
+
 
 ---
 
-### **✨ Features**
+## **✨ Features**
 
-- **Simple Markdown Rendering**: Use `preswald.text()` to convert Markdown into sleek, responsive content.
 - **Data Connections Made Easy**: Connect to CSV, JSON, Parquet, or SQL databases in seconds.
 - **Interactive Components**: Build with sliders, buttons, dropdowns, and more—because who doesn’t love sliders?
 - **Dynamic Tables**: Preview and manipulate your data interactively.
@@ -187,7 +192,7 @@ sidebar_width = "280px"
 
 ### **📚 Documentation**
 
-We’re here to help! Check out our full documentation at [Preswald Docs](https://github.com/your-org/preswald/wiki).
+We’re here to help! Check out our full documentation at [Preswald Docs](https://docs.preswald.com/).
 
 ---
 
@@ -198,7 +203,7 @@ Preswald thrives on community contributions! Here’s how you can help:
 1. Fork the repository.
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/preswald.git
+   git clone https://github.com/StructuredLabs/preswald.git
    ```
 3. Install development dependencies:
    ```bash
@@ -223,6 +228,6 @@ Preswald is licensed under the [Apache 2.0 License](LICENSE).
 
 ### **🎉 Join the Community**
 
-- **GitHub Issues**: Found a bug? Let us know [here](https://github.com/your-org/preswald/issues).
-- **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/your-org/preswald/discussions).
-- **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/your-org/preswald/graphs/contributors).
+- **GitHub Issues**: Found a bug? Let us know [here](https://github.com/StructuredLabs/preswald/issues).
+- **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/StructuredLabs/preswald/discussions).
+- **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/StructuredLabs/preswald/graphs/contributors).
