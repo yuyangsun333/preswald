@@ -4,7 +4,6 @@ _Your lightweight companion for building simple, interactive, and dynamic data a
 
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/your-repo/ci.yml?branch=main)](https://github.com/your-org/preswald/actions)
 [![Coverage](https://img.shields.io/codecov/c/github/your-org/preswald)](https://codecov.io/gh/your-org/preswald)
 
 ---
@@ -37,6 +36,8 @@ pip install preswald
 ```
 
 ---
+
+![Demo GIF](assets/demo1.gif)
 
 ### **👩‍💻 Quick Start**
 
@@ -74,6 +75,7 @@ data_conn = connect("example.csv", "my_data")
 # Display the data as a table
 view(data_conn)
 ```
+![Demo GIF](assets/demo2.gif)
 
 ---
 
