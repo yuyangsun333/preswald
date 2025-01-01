@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import json
 import pandas as pd
+import hashlib
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -27,21 +28,31 @@ def checkbox(label, default=False):
     _rendered_html.append(component)
     return component
 
-def slider(label, min_val=0, max_val=100, step=1, default=50):
-    """Create a slider component."""
-    id = generate_id("slider")
-    logger.debug(f"Creating slider component with id {id}, label: {label}")
+def slider(label: str, min_val: float = 0.0, max_val: float = 100.0, step: float = 1.0, default: float = None) -> dict:
+    """Create a slider component with consistent ID based on label"""
+    # Create a consistent ID based on the label
+    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    
+    # Get current state or use default
+    current_value = get_component_state(component_id)
+    if current_value is None:
+        current_value = default if default is not None else min_val
+    
     component = {
         "type": "slider",
-        "id": id,
+        "id": component_id,
         "label": label,
         "min": min_val,
         "max": max_val,
         "step": step,
-        "value": get_component_state(id, default)
+        "value": current_value
     }
-    logger.debug(f"Created component: {component}")
+    
+    logger.debug(f"Creating slider component with id {component_id}, label: {label}")
+    logger.debug(f"Current value from state: {current_value}")
+    
     _rendered_html.append(component)
+    
     return component
 
 def button(label):
@@ -163,6 +174,8 @@ def convert_to_serializable(obj):
     elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
         return int(obj)
     elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+        if np.isnan(obj):
+            return None
         return float(obj)
     elif isinstance(obj, np.bool_):
         return bool(obj)
@@ -171,6 +184,8 @@ def convert_to_serializable(obj):
     elif isinstance(obj, (list, tuple)):
         return [convert_to_serializable(item) for item in obj]
     elif isinstance(obj, np.generic):
+        if np.isnan(obj):
+            return None
         return obj.item()
     return obj
 
@@ -185,25 +200,33 @@ def plotly(fig):
         id = generate_id("plot")
         logger.debug(f"Creating plot component with id {id}")
         
-        # Convert the figure to JSON-serializable format first
+        # Convert the figure to JSON-serializable format
         fig_dict = fig.to_dict()
+        
+        # Clean up any NaN values in the data
+        for trace in fig_dict.get('data', []):
+            if isinstance(trace.get('marker'), dict):
+                marker = trace['marker']
+                if 'sizeref' in marker and (isinstance(marker['sizeref'], float) and np.isnan(marker['sizeref'])):
+                    marker['sizeref'] = None
+            
+            # Clean up other potential NaN values
+            for key, value in trace.items():
+                if isinstance(value, (list, np.ndarray)):
+                    trace[key] = [None if isinstance(x, (float, np.floating)) and np.isnan(x) else x for x in value]
+                elif isinstance(value, (float, np.floating)) and np.isnan(value):
+                    trace[key] = None
+        
+        # Convert to JSON-serializable format
         serializable_fig_dict = convert_to_serializable(fig_dict)
         
-        # Test JSON serialization before proceeding
-        json.dumps(serializable_fig_dict)
-        
-        # Only generate HTML after ensuring data is serializable
-        html = fig.to_html(full_html=False, include_plotlyjs="cdn")
-        
-        # Get the figure's data, layout and config
-        data = {
+        component = {
             "type": "plot",
             "id": id,
-            "content": html,  # HTML version for backward compatibility
             "data": {
-                "data": serializable_fig_dict["data"],  # The traces in JSON-serializable format
-                "layout": serializable_fig_dict["layout"],  # The layout in JSON-serializable format
-                "config": {  # Enhanced config for better UX
+                "data": serializable_fig_dict.get("data", []),
+                "layout": serializable_fig_dict.get("layout", {}),
+                "config": {
                     "responsive": True,
                     "displayModeBar": True,
                     "modeBarButtonsToRemove": ["lasso2d", "select2d"],
@@ -212,9 +235,12 @@ def plotly(fig):
             }
         }
         
+        # Verify JSON serialization
+        json.dumps(component)
+        
         logger.debug(f"Plot data created successfully for id {id}")
-        _rendered_html.append(data)
-        return data
+        _rendered_html.append(component)
+        return component
         
     except Exception as e:
         logger.error(f"Error creating plot: {str(e)}", exc_info=True)

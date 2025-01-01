@@ -10,6 +10,7 @@ import uuid
 import threading
 from typing import Dict, List
 import asyncio
+import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -34,27 +35,49 @@ def register_component_callback(component_id: str, callback: Callable):
         logger.debug(f"[STATE] Registered callback for component {component_id}")
         logger.debug(f"  - Total callbacks: {len(_component_callbacks[component_id])}")
 
+def _clean_nan_values(obj):
+    """Clean NaN values from an object recursively."""
+    import numpy as np
+    
+    if isinstance(obj, (float, np.floating)):
+        return None if np.isnan(obj) else float(obj)
+    elif isinstance(obj, (list, tuple)):
+        return [_clean_nan_values(x) for x in obj]
+    elif isinstance(obj, dict):
+        return {k: _clean_nan_values(v) for k, v in obj.items()}
+    elif isinstance(obj, np.ndarray):
+        if obj.dtype.kind in ['f', 'c']:  # Float or complex
+            obj = np.where(np.isnan(obj), None, obj)
+        return obj.tolist()
+    return obj
+
 def update_component_state(component_id: str, value: Any):
     """Update the state of a component and trigger callbacks"""
     with _state_lock:
         logger.debug(f"[STATE] Updating state for component {component_id}: {value}")
         old_value = _component_states.get(component_id)
-        _component_states[component_id] = value
         
-        # Log state change
-        logger.debug(f"[STATE] State changed for {component_id}:")
-        logger.debug(f"  - Old value: {old_value}")
-        logger.debug(f"  - New value: {value}")
+        # Clean NaN values before comparison and storage
+        cleaned_value = _clean_nan_values(value)
+        cleaned_old_value = _clean_nan_values(old_value)
         
-        # Trigger callbacks if any
-        if component_id in _component_callbacks:
-            logger.debug(f"[STATE] Triggering {len(_component_callbacks[component_id])} callbacks for {component_id}")
-            for callback in _component_callbacks[component_id]:
-                try:
-                    callback(value)
-                    logger.debug(f"[STATE] Successfully executed callback for {component_id}")
-                except Exception as e:
-                    logger.error(f"[STATE] Error in callback for component {component_id}: {e}")
+        if cleaned_old_value != cleaned_value:  # Only update if value has changed
+            _component_states[component_id] = cleaned_value
+            
+            # Log state change
+            logger.debug(f"[STATE] State changed for {component_id}:")
+            logger.debug(f"  - Old value: {cleaned_old_value}")
+            logger.debug(f"  - New value: {cleaned_value}")
+            
+            # Trigger callbacks if any
+            if component_id in _component_callbacks:
+                logger.debug(f"[STATE] Triggering {len(_component_callbacks[component_id])} callbacks for {component_id}")
+                for callback in _component_callbacks[component_id]:
+                    try:
+                        callback(cleaned_value)
+                        logger.debug(f"[STATE] Successfully executed callback for {component_id}")
+                    except Exception as e:
+                        logger.error(f"[STATE] Error in callback for component {component_id}: {e}")
 
 def get_component_state(component_id: str, default: Any = None) -> Any:
     """Get the current state of a component"""
@@ -73,9 +96,9 @@ def get_all_component_states() -> Dict[str, Any]:
 def clear_component_states():
     """Clear all component states"""
     with _state_lock:
-        logger.debug("[STATE] Clearing all component states")
-        _component_states.clear()
+        logger.debug("[STATE] Clearing component callbacks")
         _component_callbacks.clear()
+        # Do not clear _component_states as we want to preserve values between reruns
 
 def track(func):
     """Decorator to track function calls and their dependencies"""
@@ -222,9 +245,40 @@ def execute_query(connection_name, query):
         result = pd.read_sql(query, conn)
         return result
 
+def clear_rendered_components():
+    """Clear all rendered components"""
+    global _rendered_html
+    logger.debug("[CORE] Clearing all rendered components")
+    _rendered_html.clear()
+
+def convert_to_serializable(obj):
+    """Convert numpy arrays and other non-serializable objects to Python native types."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
+        return int(obj)
+    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+        if np.isnan(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_to_serializable(item) for item in obj]
+    elif isinstance(obj, np.generic):
+        if hasattr(obj, 'item'):
+            val = obj.item()
+            if isinstance(val, float) and np.isnan(val):
+                return None
+            return val
+        return None
+    return obj
+
 def get_rendered_components():
     """Get all rendered components as JSON"""
-    logger.debug(f"Getting rendered components, count: {len(_rendered_html)}")
+    logger.debug(f"[CORE] Getting rendered components, count: {len(_rendered_html)}")
     components = []
     
     # Create a set to track unique component IDs
@@ -233,17 +287,26 @@ def get_rendered_components():
     for item in _rendered_html:
         try:
             if isinstance(item, dict):
+                # Clean any NaN values in the component
+                cleaned_item = _clean_nan_values(item)
+                
                 # Ensure component has current state
-                if 'id' in item:
-                    component_id = item['id']
+                if 'id' in cleaned_item:
+                    component_id = cleaned_item['id']
                     if component_id not in seen_ids:
-                        # Update component with current state
-                        if 'value' in item:
-                            current_state = get_component_state(component_id, item['value'])
-                            item['value'] = current_state
-                        components.append(item)
+                        # Update component with current state if it exists
+                        if 'value' in cleaned_item:
+                            current_state = get_component_state(component_id)
+                            if current_state is not None:
+                                cleaned_item['value'] = _clean_nan_values(current_state)
+                                logger.debug(f"[CORE] Updated component {component_id} with state: {current_state}")
+                        components.append(cleaned_item)
                         seen_ids.add(component_id)
-                        logger.debug(f"Added component with state: {item}")
+                        logger.debug(f"[CORE] Added component with state: {cleaned_item}")
+                else:
+                    # Components without IDs are added as-is
+                    components.append(cleaned_item)
+                    logger.debug(f"[CORE] Added component without ID: {cleaned_item}")
             else:
                 # Convert HTML string to component data
                 component = {
@@ -251,12 +314,9 @@ def get_rendered_components():
                     "content": str(item)
                 }
                 components.append(component)
-                logger.debug(f"Converted HTML to component: {component}")
+                logger.debug(f"[CORE] Added HTML component: {component}")
         except Exception as e:
-            logger.error(f"Error processing component: {e}", exc_info=True)
+            logger.error(f"[CORE] Error processing component: {e}", exc_info=True)
+            continue
     
-    # Clear the rendered_html list after processing
-    _rendered_html.clear()
-    
-    logger.info(f"Returning {len(components)} unique components")
     return components

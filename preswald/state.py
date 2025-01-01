@@ -4,8 +4,8 @@ import networkx as nx
 class StateManager:
     def __init__(self):
         # Core data structures
-        self.graph = nx.DiGraph()  # Stores function dependencies
-        self.cache = {}  # Stores function results
+        self.graph = nx.DiGraph() # Stores function dependencies
+        self.cache = {} # Stores function results
         self.data_to_node = {}  # Maps data objects to their source nodes
         self.current_execution = None  # Tracks currently executing function
 
