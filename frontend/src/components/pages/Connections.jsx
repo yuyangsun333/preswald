@@ -62,10 +62,11 @@ const Connections = () => {
       }
     };
 
-    websocket.subscribe(handleWebSocketMessage);
+    const unsubscribe = websocket.subscribe(handleWebSocketMessage);
 
+    // Return cleanup function
     return () => {
-      websocket.unsubscribe(handleWebSocketMessage);
+      unsubscribe();
     };
   }, []);
 
