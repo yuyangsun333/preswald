@@ -26,7 +26,8 @@ class BuildFrontendCommand(Command):
     def _build_frontend(self):
         frontend_dir = Path(__file__).parent / 'frontend'
         if not frontend_dir.exists():
-            print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
+            print(f"Frontend directory not found at {
+                  frontend_dir}", file=sys.stderr)
             return
 
         print("Building frontend assets...")
@@ -52,7 +53,8 @@ class BuildFrontendCommand(Command):
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {
+                  str(e)}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):
@@ -118,7 +120,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.19",
+    version="0.1.20",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
@@ -126,7 +128,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
     license="Apache License 2.0",
-    
+
     # Package configuration
     packages=find_packages(),
     classifiers=[
@@ -134,27 +136,27 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    
+
     # Package data and dependencies
     include_package_data=True,
     package_data={
         'preswald': ['static/*', 'static/assets/*'],
     },
     python_requires='>=3.7',
-    
+
     # Dependencies
     install_requires=CORE_DEPENDENCIES,
     extras_require={
         'dev': DEV_DEPENDENCIES,
     },
-    
+
     # Command line interface registration
     entry_points={
         'console_scripts': [
             'preswald=preswald.cli:cli',
         ],
     },
-    
+
     # Custom commands
     cmdclass={
         'build_frontend': BuildFrontendCommand,
