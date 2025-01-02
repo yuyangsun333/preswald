@@ -6,7 +6,7 @@ import plotly.express as px
 text("# Earthquake Analytics Dashboard 🌍")
 
 # Load and connect data
-connection_name = connect("earthquake_data.csv", "earthquake_connection")
+connection_name = connect("data/earthquake_data.csv", "earthquake_connection")
 
 # Slider for filtering magnitude
 # here min_magnitude is {'type': 'slider', 'id': 'slider-f6dab796', 'label': 'Minimum Magnitude', 'min': 0.0, 'max': 10.0, 'step': 1, 'value': 5.0}

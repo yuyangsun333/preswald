@@ -4,9 +4,9 @@ version = "0.1.0"
 port = 8501
 
 [branding]
-logo = "thumbn1ail.png"
-favicon = "thumb1asdanail.png"
-name = "Jay"             # Brand name
+logo = "thumbnail.png"
+favicon = "favicon.ico"
+name = "Earthquakes"         
 
 [theme.color]
 primary = "#4CAF50"
