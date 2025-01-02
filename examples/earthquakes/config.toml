@@ -3,6 +3,11 @@ title = "Preswald Project"
 version = "0.1.0"
 port = 8501
 
+[branding]
+logo = "thumbn1ail.png"
+favicon = "thumb1asdanail.png"
+name = "Jay"             # Brand name
+
 [theme.color]
 primary = "#4CAF50"
 secondary = "#FFC107"
