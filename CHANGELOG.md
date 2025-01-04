@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [0.1.21] - 2025-01-03
+
+### Added
+
+- MVP of State Management
+  - Atom and Workflow classes provide notebook-like DAGs
+  - Support for selective recomputation, caching
+  - Basic dependency visualization and analysis
+
+
 ## [0.1.0] - 2024-12-20
 
 ### Added
