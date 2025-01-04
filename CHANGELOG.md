@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
-## [0.1.21] - 2025-01-03
+## [0.1.22] - 2025-01-03
 
 ### Added
 
