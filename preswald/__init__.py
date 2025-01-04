@@ -1,5 +1,5 @@
 # Initialize the Preswald package
-__version__ = "0.1.20"
+__version__ = "0.1.21"
 
 from .core import track, connect, connections
 from .components import (
