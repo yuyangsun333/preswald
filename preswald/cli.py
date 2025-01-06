@@ -22,6 +22,20 @@ def init(name):
     """
     try:
         os.makedirs(name, exist_ok=True)
+        os.makedirs(os.path.join(name, "images"), exist_ok=True)
+
+        # Copy default branding files from package resources
+        import pkg_resources
+        import shutil
+
+        # Copy default branding files
+        default_static_dir = pkg_resources.resource_filename('preswald', 'static')
+        default_favicon = os.path.join(default_static_dir, 'favicon.ico')
+        default_logo = os.path.join(default_static_dir, 'logo.png')
+
+        # Copy to project's images directory
+        shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
+        shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
 
         # Create boilerplate files
         with open(os.path.join(name, "hello.py"), "w") as f:
@@ -54,6 +68,11 @@ text("This is your first app. 🎉")
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
 
 [theme.color]
 primary = "#4CAF50"

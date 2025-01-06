@@ -95,16 +95,56 @@ try:
     os.makedirs(STATIC_DIR, exist_ok=True)
     os.makedirs(ASSETS_DIR, exist_ok=True)
 
-    # Mount static files only if directories exist and contain files
-    if os.path.exists(ASSETS_DIR) and os.listdir(ASSETS_DIR):
-        app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
-        logger.info(f"Mounted assets directory: {ASSETS_DIR}")
+    # Mount static files - only mount /assets, not root
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+    logger.info(f"Mounted assets directory: {ASSETS_DIR}")
+    
+    # Copy default branding files to assets directory
+    default_logo = os.path.join(STATIC_DIR, "logo.png")
+    default_favicon = os.path.join(STATIC_DIR, "favicon.ico")
+    
+    if os.path.exists(default_logo):
+        import shutil
+        # Copy to assets
+        shutil.copy2(default_logo, os.path.join(ASSETS_DIR, "logo.png"))
+        logger.info("Copied default logo to assets directory")
     else:
-        logger.warning(f"Assets directory not found or empty: {ASSETS_DIR}")
+        logger.warning(f"Default logo not found at {default_logo}")
+    
+    if os.path.exists(default_favicon):
+        import shutil
+        # Copy to assets
+        shutil.copy2(default_favicon, os.path.join(ASSETS_DIR, "favicon.ico"))
+        logger.info("Copied default favicon to assets directory")
+    else:
+        logger.warning(f"Default favicon not found at {default_favicon}")
 
 except Exception as e:
-    logger.error(f"Error setting up static files: {str(e)}")
+    logger.error(f"Error setting up static files: {str(e)}", exc_info=True)
     raise
+
+# Add explicit route for favicon.ico
+@app.get("/favicon.ico")
+async def get_favicon():
+    """Serve favicon.ico from assets directory"""
+    favicon_path = os.path.join(ASSETS_DIR, "favicon.ico")
+    if os.path.exists(favicon_path):
+        return FileResponse(favicon_path)
+    else:
+        # Try default favicon
+        default_favicon = os.path.join(STATIC_DIR, "favicon.ico")
+        if os.path.exists(default_favicon):
+            return FileResponse(default_favicon)
+        raise HTTPException(status_code=404, detail="Favicon not found")
+
+# Add explicit route for static files that aren't in assets
+@app.get("/static/{path:path}")
+async def get_static(path: str):
+    """Serve static files that aren't in assets"""
+    file_path = os.path.join(STATIC_DIR, path)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="File not found")
 
 @app.get("/")
 async def serve_index():
@@ -116,17 +156,18 @@ async def serve_index():
             title = "Preswald"  # Default title
             branding = {
                 "name": "Preswald",
-                "logo": "/assets/default-logo.png",
+                "logo": "/assets/logo.png",
                 "favicon": "/assets/favicon.ico"
             }
             
             if SCRIPT_PATH:
                 try:
-                    config_path = os.path.join(os.path.dirname(SCRIPT_PATH), "config.toml")
-                    print(f"Loading config from {config_path}")
+                    script_dir = os.path.dirname(SCRIPT_PATH)
+                    config_path = os.path.join(script_dir, "config.toml")
+                    logger.info(f"Loading config from {config_path}")
                     import toml
                     config = toml.load(config_path)
-                    print(f"Loaded config in server.py: {config}")
+                    logger.info(f"Loaded config in server.py: {config}")
                     
                     # Get branding configuration
                     if "branding" in config:
@@ -140,57 +181,85 @@ async def serve_index():
                         if logo:
                             if logo.startswith(("http://", "https://")):
                                 branding["logo"] = logo
+                                logger.info(f"Using remote logo URL: {logo}")
                             else:
                                 # Copy local logo to assets directory
-                                logo_path = os.path.join(os.path.dirname(config_path), logo)
+                                logo_path = os.path.join(script_dir, logo)
+                                logger.info(f"Looking for logo at: {logo_path}")
                                 if os.path.exists(logo_path):
-                                    from PIL import Image
                                     import shutil
-                                    
-                                    # Process logo image (crop to square if needed)
-                                    img = Image.open(logo_path)
-                                    min_side = min(img.size)
-                                    # Calculate cropping box
-                                    left = (img.width - min_side) // 2
-                                    top = (img.height - min_side) // 2
-                                    right = left + min_side
-                                    bottom = top + min_side
-                                    # Crop to square
-                                    img = img.crop((left, top, right, bottom))
-                                    # Save to assets directory
-                                    processed_logo_path = os.path.join(ASSETS_DIR, "logo" + os.path.splitext(logo_path)[1])
-                                    img.save(processed_logo_path)
-                                    branding["logo"] = f"/assets/logo{os.path.splitext(logo_path)[1]}"
+                                    # Create a unique filename to avoid conflicts
+                                    logo_ext = os.path.splitext(logo_path)[1]
+                                    dest_logo_path = os.path.join(ASSETS_DIR, f"logo{logo_ext}")
+                                    shutil.copy2(logo_path, dest_logo_path)
+                                    branding["logo"] = f"/assets/logo{logo_ext}"
+                                    logger.info(f"Copied logo to: {dest_logo_path}")
+                                else:
+                                    logger.warning(f"Logo file not found at {logo_path}, using default")
+                                    # Copy default logo if custom one not found
+                                    default_logo = os.path.join(BASE_DIR, "static", "logo.png")
+                                    if os.path.exists(default_logo):
+                                        shutil.copy2(default_logo, os.path.join(ASSETS_DIR, "logo.png"))
+                                        branding["logo"] = "/assets/logo.png"
+                                        logger.info("Using default logo")
                         
                         # Handle favicon
                         favicon = branding_config.get("favicon")
                         if favicon:
                             if favicon.startswith(("http://", "https://")):
                                 branding["favicon"] = favicon
+                                logger.info(f"Using remote favicon URL: {favicon}")
                             else:
                                 # Copy local favicon to assets directory
-                                favicon_path = os.path.join(os.path.dirname(config_path), favicon)
+                                favicon_path = os.path.join(script_dir, favicon)
+                                logger.info(f"Looking for favicon at: {favicon_path}")
                                 if os.path.exists(favicon_path):
                                     import shutil
-                                    dest_favicon_path = os.path.join(ASSETS_DIR, "favicon" + os.path.splitext(favicon_path)[1])
+                                    # Create a unique filename to avoid conflicts
+                                    favicon_ext = os.path.splitext(favicon_path)[1]
+                                    dest_favicon_path = os.path.join(ASSETS_DIR, f"favicon{favicon_ext}")
                                     shutil.copy2(favicon_path, dest_favicon_path)
-                                    branding["favicon"] = f"/assets/favicon{os.path.splitext(favicon_path)[1]}"
+                                    branding["favicon"] = f"/assets/favicon{favicon_ext}"
+                                    logger.info(f"Copied favicon to: {dest_favicon_path}")
+                                else:
+                                    logger.warning(f"Favicon file not found at {favicon_path}, using default")
+                                    # Copy default favicon if custom one not found
+                                    default_favicon = os.path.join(BASE_DIR, "static", "favicon.ico")
+                                    if os.path.exists(default_favicon):
+                                        shutil.copy2(default_favicon, os.path.join(ASSETS_DIR, "favicon.ico"))
+                                        branding["favicon"] = "/assets/favicon.ico"
+                                        logger.info("Using default favicon")
+                    
+                    logger.info(f"Final branding configuration: {branding}")
                     
                 except Exception as e:
-                    logger.error(f"Error loading config for index: {e}")
+                    logger.error(f"Error loading config for index: {e}", exc_info=True)
+                    # Ensure defaults are used in case of error
+                    if not os.path.exists(os.path.join(ASSETS_DIR, "logo.png")):
+                        default_logo = os.path.join(BASE_DIR, "static", "logo.png")
+                        if os.path.exists(default_logo):
+                            shutil.copy2(default_logo, os.path.join(ASSETS_DIR, "logo.png"))
+                    
+                    if not os.path.exists(os.path.join(ASSETS_DIR, "favicon.ico")):
+                        default_favicon = os.path.join(BASE_DIR, "static", "favicon.ico")
+                        if os.path.exists(default_favicon):
+                            shutil.copy2(default_favicon, os.path.join(ASSETS_DIR, "favicon.ico"))
 
             # Read and modify the index.html content
             with open(index_path, 'r') as f:
                 content = f.read()
                 # Replace the title tag content
                 content = content.replace('<title>Vite + React</title>', f'<title>{title}</title>')
-                # Add favicon link
-                favicon_link = f'<link rel="icon" type="image/x-icon" href="{branding["favicon"]}">'
-                content = content.replace('</head>', f'{favicon_link}\n</head>')
+                # Replace the existing favicon link
+                content = content.replace(
+                    '<link rel="icon" type="image/svg+xml" href="/preswald.svg" />',
+                    f'<link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />'
+                )
                 # Add branding data
                 branding_script = f'<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>'
                 content = content.replace('</head>', f'{branding_script}\n</head>')
             
+            logger.info(f"Serving index.html with branding: {branding}")
             return HTMLResponse(content)
         else:
             logger.error(f"Index file not found at {index_path}")
@@ -199,27 +268,11 @@ async def serve_index():
         logger.error(f"Error serving index: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+# Add catch-all route for SPA routing
 @app.get("/{path:path}")
-async def serve_static(path: str):
-    """Serve static files with proper error handling"""
-    try:
-        # Security check: prevent directory traversal
-        requested_path = os.path.abspath(os.path.join(STATIC_DIR, path))
-        if not requested_path.startswith(os.path.abspath(STATIC_DIR)):
-            raise HTTPException(status_code=403, detail="Access denied")
-
-        if os.path.exists(requested_path) and os.path.isfile(requested_path):
-            return FileResponse(requested_path)
-        elif path == "" or not os.path.exists(requested_path):
-            # SPA routing - return index.html for non-existent paths
-            return await serve_index()
-        else:
-            raise HTTPException(status_code=404, detail="File not found")
-    except Exception as e:
-        logger.error(f"Error serving static file {path}: {str(e)}")
-        if isinstance(e, HTTPException):
-            raise
-        raise HTTPException(status_code=500, detail="Internal server error")
+async def serve_spa(path: str):
+    """Serve the SPA for any other routes"""
+    return await serve_index()
 
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
