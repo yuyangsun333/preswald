@@ -29,9 +29,21 @@ export default function Example({ children }) {
   useEffect(() => {
     // Get branding from window object (set by server)
     if (window.PRESWALD_BRANDING) {
+      console.log('Received branding:', window.PRESWALD_BRANDING);
       setBranding(window.PRESWALD_BRANDING);
-      // Update document title
+      
+      // Update document title and favicon
       document.title = window.PRESWALD_BRANDING.name;
+      
+      // Update favicon
+      const faviconLink = document.querySelector("link[rel*='icon']") || document.createElement('link');
+      faviconLink.type = 'image/x-icon';
+      faviconLink.rel = 'icon';
+      faviconLink.href = window.PRESWALD_BRANDING.favicon;
+      document.head.appendChild(faviconLink);
+      console.log('Updated favicon to:', window.PRESWALD_BRANDING.favicon);
+    } else {
+      console.warn('No PRESWALD_BRANDING found in window object');
     }
   }, []);
 
