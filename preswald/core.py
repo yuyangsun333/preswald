@@ -1,14 +1,15 @@
 from markdown import markdown
 import pandas as pd
-from sqlalchemy import create_engine
-from typing import Dict, Any, Optional, Callable
+from sqlalchemy import create_engine, text
+from typing import Dict, Any, Optional, Callable, List
 import json
 import logging
 import uuid
 import threading
-from typing import Dict, List
 import asyncio
 import numpy as np
+import os
+import toml
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -20,6 +21,10 @@ _component_states: Dict[str, Any] = {}
 _component_callbacks: Dict[str, List[Callable]] = {}
 _state_lock = threading.Lock()
 
+def get_script_path():
+    """Get the script path from the server module, avoiding circular imports."""
+    from preswald.server import SCRIPT_PATH
+    return SCRIPT_PATH
 
 def register_component_callback(component_id: str, callback: Callable):
     """Register a callback for component state changes"""
@@ -138,48 +143,87 @@ def connect(source, name=None):
     try:
         # First try to load from config if it's a connection name
         try:
-            from preswald.data import load_connection_config
-            from preswald.server import SCRIPT_PATH
-            import os
+            script_path = get_script_path()
+            logger.info(f"[CONNECT] SCRIPT_PATH {script_path}")
             
-            if SCRIPT_PATH:
-                config_dir = os.path.dirname(SCRIPT_PATH)
+            if script_path:
+                config_dir = os.path.dirname(script_path)
                 config_path = os.path.join(config_dir, "config.toml")
                 secrets_path = os.path.join(config_dir, "secrets.toml")
+                logger.info(f"[CONNECT] CONFIG_PATH {config_path}")
+                logger.info(f"[CONNECT] SECRETS_PATH {secrets_path}")
                 
+                # Load main config
                 if os.path.exists(config_path):
-                    config = load_connection_config(config_path, secrets_path)
-                    if source in config:
-                        # Use the named connection from config
-                        conn_config = config[source]
-                        if conn_config.get('type') == 'postgres':
-                            user = conn_config.get('user', 'postgres')
-                            password = conn_config.get('password', '')
-                            host = conn_config.get('host', 'localhost')
-                            port = conn_config.get('port', 5432)
-                            dbname = conn_config.get('dbname', 'postgres')
-                            source = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
-                        elif conn_config.get('type') == 'mysql':
-                            user = conn_config.get('user', 'root')
-                            password = conn_config.get('password', '')
-                            host = conn_config.get('host', 'localhost')
-                            port = conn_config.get('port', 3306)
-                            dbname = conn_config.get('dbname', '')
-                            source = f"mysql://{user}:{password}@{host}:{port}/{dbname}"
-                        elif conn_config.get('type') in ['csv', 'json', 'parquet']:
-                            source = conn_config.get('path')
+                    with open(config_path, 'r') as f:
+                        config = toml.load(f)
+                    logger.info(f"[CONNECT] Loaded config: {config}")
+                    
+                    # Load secrets if available
+                    secrets = {}
+                    if os.path.exists(secrets_path):
+                        with open(secrets_path, 'r') as f:
+                            secrets = toml.load(f)
+                        logger.info("[CONNECT] Loaded secrets file")
+                    
+                    # Handle nested data section
+                    if source.startswith("data."):
+                        # Extract the connection name after "data."
+                        conn_name = source.split(".", 1)[1]
+                        if "data" in config and conn_name in config["data"]:
+                            conn_config = config["data"][conn_name]
+                            logger.info(f"[CONNECT] Found connection config: {conn_config}")
+                            
+                            # Get password from secrets if it exists
+                            password = ""
+                            if "data" in secrets and conn_name in secrets["data"]:
+                                password = secrets["data"][conn_name].get("password", "")
+                            
+                            conn_type = conn_config.get('type')
+                            if not conn_type:
+                                raise ValueError(f"Connection type not specified for {conn_name}")
+                            
+                            if conn_type == 'postgres':
+                                user = conn_config.get('user', 'postgres')
+                                host = conn_config.get('host', 'localhost')
+                                port = conn_config.get('port', 5432)
+                                dbname = conn_config.get('dbname', 'postgres')
+                                source = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+                                logger.info(f"[CONNECT] Created PostgreSQL connection string for {host}:{port}/{dbname}")
+                            elif conn_type == 'mysql':
+                                user = conn_config.get('user', 'root')
+                                host = conn_config.get('host', 'localhost')
+                                port = conn_config.get('port', 3306)
+                                dbname = conn_config.get('dbname', '')
+                                source = f"mysql://{user}:{password}@{host}:{port}/{dbname}"
+                                logger.info(f"[CONNECT] Created MySQL connection string for {host}:{port}/{dbname}")
+                            elif conn_type in ['csv', 'json', 'parquet']:
+                                source = conn_config.get('path')
+                                if not source:
+                                    raise ValueError(f"Path not specified for {conn_name}")
+                                if not os.path.isabs(source):
+                                    source = os.path.join(config_dir, source)
+                                logger.info(f"[CONNECT] Resolved source path: {source}")
+                            else:
+                                raise ValueError(f"Unsupported connection type: {conn_type}")
                         else:
-                            raise ValueError(f"Unsupported connection type: {conn_config.get('type')}")
+                            raise ValueError(f"Connection '{conn_name}' not found in config data section")
+                    elif source in config:
+                        # Handle non-nested config (backward compatibility)
+                        conn_config = config[source]
+                        if conn_config.get('type') in ['csv', 'json', 'parquet']:
+                            source = conn_config.get('path')
+                            if not os.path.isabs(source):
+                                source = os.path.join(config_dir, source)
         except Exception as e:
             # If loading from config fails, continue with direct source
             logger.warning(f"[CONNECT] Failed to load from config: {e}")
-            pass
+            raise  # Re-raise the exception to handle it properly
 
+        logger.info(f"[CONNECT] Final source path: {source}")
         # Process the source as a direct path/connection string
         if source.endswith(".csv"):
-            # Get script directory and make path relative to it
-            import os
-            from preswald.server import SCRIPT_PATH
+            logger.info(f"[CONNECT] Reading CSV from: {source}")
             import requests
             
             # Check if source is a URL
@@ -192,20 +236,32 @@ def connect(source, name=None):
                 connections[name] = pd.read_csv(csv_data)
             else:
                 # Handle local file path
-                script_dir = os.path.dirname(SCRIPT_PATH)
+                script_path = get_script_path()
+                script_dir = os.path.dirname(script_path) if script_path else os.getcwd()
                 # Make source path absolute if it's relative
                 if not os.path.isabs(source):
                     csv_path = os.path.join(script_dir, source)
                 else:
                     csv_path = source
+                logger.info(f"[CONNECT] Reading CSV from: {csv_path}")
                 connections[name] = pd.read_csv(csv_path)
         elif source.endswith(".json"):
+            logger.info(f"[CONNECT] Reading JSON from: {source}")
             connections[name] = pd.read_json(source)
         elif source.endswith(".parquet"):
+            logger.info(f"[CONNECT] Reading Parquet from: {source}")
             connections[name] = pd.read_parquet(source)
         elif any(source.startswith(prefix) for prefix in ["postgresql://", "postgres://", "mysql://"]):
+            logger.info(f"[CONNECT] Creating database engine")
             engine = create_engine(source)
-            connections[name] = engine
+            try:
+                # Test the connection
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                logger.info("[CONNECT] Database connection test successful")
+                connections[name] = engine
+            except Exception as e:
+                raise RuntimeError(f"Failed to connect to database: {str(e)}")
         else:
             raise ValueError(f"Unsupported data source format: {source}")
 
@@ -216,7 +272,7 @@ def connect(source, name=None):
         # Clean up if connection failed
         if name in connections:
             del connections[name]
-        raise RuntimeError(f"Failed to connect to source '{source}': {e}")
+        raise RuntimeError(f"Failed to connect to source '{source}': {str(e)}")
 
     return name
 
