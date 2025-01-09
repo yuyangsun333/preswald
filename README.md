@@ -1,7 +1,5 @@
 ![Banner](assets/banner.png)
 
-<h1 align="center">Preswald SDK</h1>
-
 <p align="center">
     <em>Your lightweight companion for building simple, interactive, and dynamic data apps in Python.</em>
 </p>
@@ -12,11 +10,27 @@
     <a href="https://www.python.org/downloads/">
         <img src="https://img.shields.io/badge/python-3.7%2B-blue.svg" alt="Python Version">
     </a>
-<p align="center">
     <a href="https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email">
         <img src="https://img.shields.io/badge/Slack-Join%20Community-orange" alt="Slack Community">
     </a>
+    <a href="https://pypi.org/project/preswald/">
+        <img src="https://img.shields.io/pypi/v/preswald" alt="PyPI Version">
+    </a>
 </p>
+
+<p align="center">
+<a href="https://preswald.com" target="_blank">
+<img src="https://img.shields.io/badge/Landing%20Page-Visit-blue?style=for-the-badge" alt="Website">
+</a>
+<a href="https://docs.preswald.com" target="_blank">
+<img src="https://img.shields.io/badge/Documentation-Read-green?style=for-the-badge" alt="Documentation">
+</a>
+<a href="https://demo.preswald.com" target="_blank">
+<img src="https://img.shields.io/badge/Demo-Try-orange?style=for-the-badge" alt="Demo">
+</a>
+<a href="https://cal.com/structured" target="_blank">
+<img src="https://img.shields.io/badge/Book%20a%20Demo-Schedule-red?style=for-the-badge" alt="Book a Demo">
+</a>
 </p>
 
 
@@ -33,7 +47,7 @@ Preswald is a full-stack platform for building, deploying, and managing interact
 
 <br>
 
----
+<br>
 
 # **🚀 Getting Started**
 
@@ -101,7 +115,21 @@ This command launches a development server, and Preswald will let you know where
 
 Open your browser, and voilà—your first Preswald app is live!
 
+### **4. Deploy Your App to the Cloud**
 
+Once you've built and tested your app locally, deploying it to the cloud is just as simple. Preswald integrates with **Google Cloud Run**, allowing you to host your app in a scalable, serverless environment with just one command.
+
+To deploy your app, set up Google Cloud credentials and a project. Then, run:
+
+```bash
+preswald deploy hello.py --project <your-gcp-project>
+```
+
+Once deployed, you’ll see a URL where your app is live, for example:
+
+```
+🌐 App deployed at: https://your-app-name-abc123.run.app
+```
 
 ## **💡 Examples**
 
@@ -153,15 +181,9 @@ name = "My app"
 
 [theme.color]
 primary = "#4CAF50"
-secondary = "#FFC107"
-background = "#FFFFFF"
-text = "#000000"
+font = "Arial, sans-serif"
 
-[theme.font]
-family = "Arial, sans-serif"
-size = "16px"
-
-[connections.postgres_main]
+[connections.postgres]
 type = "postgres"
 host = "localhost"
 port = 5432
@@ -169,19 +191,15 @@ dbname = "mydb"
 user = "user"
 
 # password is stored in secrets.toml
-
-[connections.earthquake_data]
-type = "csv"
-path = "earthquake_data.csv"
 ```
 
----
+<br>
 
 ## **📚 Documentation**
 
 We’re here to help! Check out our full documentation at [Preswald Docs](https://docs.preswald.com/).
 
----
+<br>
 
 ## **🤝 Contributing**
 
@@ -209,7 +227,8 @@ Preswald thrives on community contributions! Here’s how you can help:
 
 For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
 
----
+
+<br>
 
 ## **🎉 Join the Community**
 
@@ -218,9 +237,22 @@ For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/StructuredLabs/preswald/discussions).
 - **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/StructuredLabs/preswald/graphs/contributors).
 
----
 
-### **📄 License**
+<br>
+
+## **📢 Stay Connected**
+
+<p>
+    <a href="https://www.linkedin.com/company/structuredlabs/" target="_blank">
+        <img src="https://img.shields.io/badge/Follow%20Us-LinkedIn-blue?style=for-the-badge&logo=linkedin" alt="Follow us on LinkedIn">
+    </a>
+    <a href="https://x.com/StructuredLabs" target="_blank">
+        <img src="https://img.shields.io/badge/Follow%20Us-Twitter-1DA1F2?style=for-the-badge&logo=twitter" alt="Follow us on Twitter">
+    </a>
+</p>
+
+
+## **📄 License**
 
 Preswald is licensed under the [Apache 2.0 License](LICENSE).
 
