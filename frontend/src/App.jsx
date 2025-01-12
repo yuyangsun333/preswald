@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import Connections from "./components/pages/Connections";
 import Dashboard from "./components/pages/Dashboard";
 import Definitions from "./components/pages/Definitions";
-import Entities from "./components/pages/Entities";
 import Layout from "./components/Layout";
-import Metrics from "./components/pages/Metrics";
-import Queries from "./components/pages/Queries";
-import Schedules from "./components/pages/Schedules";
 import { websocket } from "./utils/websocket";
 
 const App = () => {
@@ -150,11 +146,7 @@ const App = () => {
               }
             />
             <Route path="/connections" element={<Connections />} />
-            <Route path="/metrics" element={<Metrics />} />
-            <Route path="/entities" element={<Entities />} />
-            <Route path="/schedules" element={<Schedules />} />
             <Route path="/definitions" element={<Definitions />} />
-            <Route path="/queries" element={<Queries />} />
           </Routes>
         )}
       </Layout>

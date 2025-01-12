@@ -9,11 +9,7 @@ import Topbar from "./TopBar";
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-  { name: 'Queries', href: '/queries', icon: MagnifyingGlassIcon, current: false },
-  { name: 'Metrics', href: '/metrics', icon: ChartBarIcon, current: false },
-  { name: 'Schedules', href: '/schedules', icon: ClockIcon, current: false },  
   { name: 'Connections', href: '/connections', icon: ServerIcon, current: false },
-  { name: 'Entities', href: '/entities', icon: GlobeAltIcon, current: false },
   { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon, current: false },
 ];
 

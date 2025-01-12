@@ -42,25 +42,10 @@ def init(name):
         # Create boilerplate files
         with open(os.path.join(name, "hello.py"), "w") as f:
             f.write(
-                """from preswald import text, connect, view
-
-# Connect to data sources
-# You can use the config.toml file to configure your connections
-# or connect directly using the source parameter:
-
-# Example connections:
-# db = connect(source="postgresql://user:pass@localhost:5432/dbname")
-# csv_data = connect(source="data/file.csv")
-# json_data = connect(source="https://api.example.com/data.json")
-
-# Or use the configuration from config.toml:
-# db = connect()  # Uses the default_source from config.toml
+                """from preswald import text
 
 text("# Welcome to Preswald!")
 text("This is your first app. 🎉")
-
-# Example: View data from a connection
-# view("connection_name", limit=50)
 """
             )
 
@@ -75,20 +60,7 @@ port = 8501
 name = "Preswald Project"
 logo = "images/logo.png"
 favicon = "images/favicon.ico"
-
-[theme.color]
-primary = "#4CAF50"
-secondary = "#FFC107"
-background = "#FFFFFF"
-text = "#000000"
-
-[theme.font]
-family = "Arial, sans-serif"
-size = "16px"
-
-[data]
-default_source = "postgres"   # Default data source. Options: "csv", "postgres", "mysql", "json", "parquet"
-cache = true                  # Enable caching of data
+primaryColor = "#F89613"
 
 [data.postgres]
 host = "localhost"            # PostgreSQL host
@@ -96,23 +68,6 @@ port = 5432                   # PostgreSQL port
 dbname = "mydb"              # Database name
 user = "user"                # Username
 # password is stored in secrets.toml
-
-[data.mysql]
-host = "localhost"           # MySQL host
-port = 3306                 # MySQL port
-dbname = "mydb"            # Database name
-user = "user"              # Username
-# password is stored in secrets.toml
-
-[data.csv]
-path = "data/sales.csv"    # Path to CSV file
-
-[data.json]
-url = "https://api.example.com/data"  # URL for JSON data
-# api_key is stored in secrets.toml
-
-[data.parquet]
-path = "data/sales.parquet"  # Path to Parquet file
 """
             )
 
