@@ -1,14 +1,14 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Link, useLocation } from 'react-router-dom'
-
-import { Fragment } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import classNames from 'classnames'
+import { Dialog, Transition } from '@headlessui/react';
+import { Link, useLocation } from 'react-router-dom';
+import { Fragment } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import classNames from 'classnames';
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, branding, isCollapsed }) {
   const location = useLocation();
+  const primaryColor = branding.primaryColor;
 
   return (
     <>
@@ -53,7 +53,6 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                     </button>
                   </div>
                 </Transition.Child>
-                {/* Sidebar component for mobile */}
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center">
                     <img
@@ -73,16 +72,19 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                                 to={item.href}
                                 className={classNames(
                                   location.pathname === item.href
-                                    ? 'bg-gray-50 text-amber-600'
-                                    : 'text-gray-700 hover:text-amber-600 hover:bg-gray-50',
+                                    ? 'bg-gray-50'
+                                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50',
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                                 )}
+                                style={{
+                                  color: location.pathname === item.href ? primaryColor : undefined,
+                                }}
                               >
                                 <item.icon
-                                  className={classNames(
-                                    location.pathname === item.href ? 'text-amber-600' : 'text-gray-400 group-hover:text-amber-600',
-                                    'h-6 w-6 shrink-0'
-                                  )}
+                                  className="h-6 w-6 shrink-0"
+                                  style={{
+                                    color: location.pathname === item.href ? primaryColor : undefined,
+                                  }}
                                   aria-hidden="true"
                                 />
                                 {item.name}
@@ -100,7 +102,6 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
         </Dialog>
       </Transition.Root>
 
-      {/* Static sidebar for desktop */}
       <div className={classNames(
         'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col',
         isCollapsed ? 'lg:w-20' : 'lg:w-80',
@@ -127,18 +128,21 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                         to={item.href}
                         className={classNames(
                           location.pathname === item.href
-                            ? 'bg-gray-50 text-amber-600'
-                            : 'text-gray-700 hover:text-amber-600 hover:bg-gray-50',
+                            ? 'bg-gray-50'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50',
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
                           isCollapsed && 'justify-center'
                         )}
+                        style={{
+                          color: location.pathname === item.href ? primaryColor : undefined,
+                        }}
                         title={isCollapsed ? item.name : undefined}
                       >
                         <item.icon
-                          className={classNames(
-                            location.pathname === item.href ? 'text-amber-600' : 'text-gray-400 group-hover:text-amber-600',
-                            'h-6 w-6 shrink-0'
-                          )}
+                          className="h-6 w-6 shrink-0"
+                          style={{
+                            color: location.pathname === item.href ? primaryColor : undefined,
+                          }}
                           aria-hidden="true"
                         />
                         {!isCollapsed && item.name}
@@ -152,5 +156,5 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
         </div>
       </div>
     </>
-  )
+  );
 }

@@ -175,12 +175,18 @@ async def serve_index():
     try:
         index_path = os.path.join(STATIC_DIR, "index.html")
         if os.path.exists(index_path):
+            import toml
+            script_dir = os.path.dirname(SCRIPT_PATH)
+            config_path = os.path.join(script_dir, "config.toml")
+            config = toml.load(config_path)
+            branding_config = config["branding"]
             # Load config if script path is set
             title = "Preswald"  # Default title
             branding = {
                 "name": "Preswald",
                 "logo": "/assets/logo.png",
-                "favicon": "/assets/favicon.ico"
+                "favicon": "/assets/favicon.ico",
+                "primaryColor": branding_config.get("primaryColor", "#000000")
             }
             
             if SCRIPT_PATH:

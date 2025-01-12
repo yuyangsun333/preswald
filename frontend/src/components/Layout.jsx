@@ -23,7 +23,8 @@ export default function Example({ children }) {
   const [branding, setBranding] = useState({
     name: 'Preswald',
     logo: '/assets/logo.png',
-    favicon: '/assets/favicon.ico'
+    favicon: '/assets/favicon.ico',
+    primaryColor: window.PRESWALD_BRANDING.primaryColor || '#FF0000'
   });
   const [faviconLoaded, setFaviconLoaded] = useState(false);
 
