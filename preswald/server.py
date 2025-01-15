@@ -17,6 +17,7 @@ from preswald.core import (
     connections
 )
 from preswald.serializer import dumps as json_dumps, loads as json_loads
+from preswald.llm import OpenAIService
 import json
 import signal
 import sys
@@ -327,6 +328,89 @@ async def get_connections():
             except Exception as e:
                 logger.error(f"Error processing active connection {name}: {e}")
                 continue
+
+        # Use LLM to analyze script for connections if script exists
+        if SCRIPT_PATH and os.path.exists(SCRIPT_PATH):
+            try:
+                # Read the script content
+                with open(SCRIPT_PATH, 'r') as f:
+                    script_content = f.read()
+
+                # Get OpenAI API key from secrets.toml
+                script_dir = os.path.dirname(SCRIPT_PATH)
+                secrets_path = os.path.join(script_dir, "secrets.toml")
+                secrets = toml.load(secrets_path)
+                openai_api_key = secrets.get('openai', {}).get('api_key')
+                
+                if not openai_api_key:
+                    raise ValueError("OpenAI API key not found in secrets.toml")
+
+                # Initialize OpenAI service
+                llm = OpenAIService(api_key=openai_api_key)
+                
+                # Call LLM to analyze connections
+                llm_response = await llm.call_gpt_api_non_streamed(
+                    text=f"Below is a python code. Please go through the code and give me the file or data connections that are being made/created in the code.\n\n{script_content}",
+                    model=llm.GPT_4_TURBO,
+                    sys_prompt=llm.ASSISTANT_SYS_PROMPT,
+                    response_type="json_object",
+                    tools=[
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "extract_connections",
+                                "description": "Extract the file or data connections that are being made/created in the code",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "connections": {
+                                            "type": "array",
+                                            "description": "The connections that are being made/created in the code",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "The name of the connection"
+                                                    },
+                                                    "type": {
+                                                        "type": "string", 
+                                                        "description": "The type of the connection"
+                                                    },
+                                                    "details": {
+                                                        "type": "string",
+                                                        "description": "Additional details about the connection"
+                                                    }
+                                                },
+                                                "required": ["name", "type", "details"]
+                                            }
+                                        }
+                                    },
+                                    "required": ["connections"]
+                                }
+                            }
+                        }
+                    ],
+                    tool_choice={
+                        "type": "function",
+                        "function": {"name": "extract_connections"}
+                    }
+                )
+
+                # Parse the LLM response and add to connection list
+                llm_connections = json.loads(llm_response.arguments).get('connections', [])
+                for conn in llm_connections:
+                    conn_info = {
+                        "name": conn["name"],
+                        "type": conn["type"],
+                        "details": conn["details"],
+                        "status": "detected",
+                        "metadata": {"source": "llm_analysis"}
+                    }
+                    connection_list.append(conn_info)
+
+            except Exception as e:
+                logger.error(f"Error analyzing script with LLM: {str(e)}")
             
         # Add connections from config.toml
         if SCRIPT_PATH:
