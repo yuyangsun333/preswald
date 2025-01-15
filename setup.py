@@ -118,6 +118,7 @@ CORE_DEPENDENCIES = [
     "Requests==2.32.3",
     "setuptools==75.1.0",
     "psycopg2>=2.9.10",
+    "openai==1.59.7"
 ]
 
 # Define additional dependencies for development
