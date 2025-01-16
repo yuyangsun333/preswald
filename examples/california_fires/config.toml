@@ -1,0 +1,24 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[theme]
+primary_color = "#3498db"
+font = "Arial, sans-serif"
+
+[connections.csv]
+type = "csv"
+file_path = "mapdataall.csv"
+delimiter = ","
+header = true
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
