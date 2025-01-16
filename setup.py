@@ -117,6 +117,7 @@ CORE_DEPENDENCIES = [
     "networkx>=3.0",
     "Requests==2.32.3",
     "setuptools==75.1.0",
+    "psycopg2>=2.9.10",
 ]
 
 # Define additional dependencies for development
@@ -146,7 +147,7 @@ setup(
     # Package data and dependencies
     include_package_data=True,
     package_data={
-        "preswald": ["static/*", "static/assets/*"],
+        "preswald": ["static/*", "static/assets/*", "templates/*"],
     },
     python_requires=">=3.7",
     # Dependencies
