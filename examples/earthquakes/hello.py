@@ -1,4 +1,4 @@
-from preswald import text, connect, view, slider, plotly, connections
+from preswald import text, view, slider, plotly
 import pandas as pd
 import plotly.express as px
 
@@ -6,7 +6,7 @@ import plotly.express as px
 text("# Earthquake Analytics Dashboard 🌍")
 
 # Load and connect data
-connection_name = connect("data/earthquake_data.csv", "earthquake_connection")
+# connection_name = connect("data/earthquake_data.csv", "earthquake_connection")
 
 # Slider for filtering magnitude
 # here min_magnitude is {'type': 'slider', 'id': 'slider-f6dab796', 'label': 'Minimum Magnitude', 'min': 0.0, 'max': 10.0, 'step': 1, 'value': 5.0}
@@ -14,7 +14,7 @@ min_magnitude = slider("Minimum Magnitude", min_val=0.0,
                        max_val=10.0, default=5.0)
 
 # Read the data and filter based on magnitude
-data = pd.DataFrame(connections[connection_name])
+data = pd.read_csv("data/earthquake_data.csv")
 # Convert Magnitude column to numeric, handling any non-numeric values
 data['Magnitude'] = pd.to_numeric(data['Magnitude'], errors='coerce')
 filtered_data = data[data['Magnitude'] >=

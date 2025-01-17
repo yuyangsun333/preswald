@@ -15,3 +15,9 @@ port = 5432                   # PostgreSQL port
 dbname = "mydb"              # Database name
 user = "user"                # Username
 # password is stored in secrets.toml
+
+[data.csv]
+type = "csv"
+path = "data/earthquake_data.csv"
+delimiter = ","
+header = true
