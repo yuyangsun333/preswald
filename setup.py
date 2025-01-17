@@ -119,6 +119,7 @@ CORE_DEPENDENCIES = [
     "setuptools==75.1.0",
     "psycopg2-binary>=2.9.10",
     "openai==1.59.7",
+    "modal>=0.72.15",
 ]
 
 # Define additional dependencies for development

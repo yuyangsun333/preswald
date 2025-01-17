@@ -4,7 +4,7 @@ import sys
 import webbrowser
 import pkg_resources
 from preswald.server import start_server
-from preswald.deploy import deploy as deploy_app, stop as stop_app
+from preswald.deploy import deploy_docker, stop_docker
 from preswald.utils import read_template, configure_logging
 
 
@@ -93,7 +93,7 @@ def run(script, port, log_level):
 @click.argument("script", default="app.py")
 @click.option(
     "--target",
-    type=click.Choice(["local", "gcp", "aws"], case_sensitive=False),
+    type=click.Choice(["local", "gcp", "aws", "modal"], case_sensitive=False),
     default="local",
     help="Target platform for deployment.",
 )
@@ -126,7 +126,7 @@ def deploy(script, target, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "config.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        url = deploy_app(script, target, port=port)
+        url = deploy_docker(script, target, port=port)
 
        ## Deployment Sucess Message
         success_message = """
@@ -166,7 +166,7 @@ def stop(script):
         if not os.path.exists(script):
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
-        stop_app(script)
+        stop_docker(script)
         click.echo("Deployment stopped successfully. 🛑 ")
     except Exception as e:
         click.echo(f"Error stopping deployment: {e} ❌")

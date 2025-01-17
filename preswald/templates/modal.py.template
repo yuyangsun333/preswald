@@ -1,0 +1,26 @@
+import modal
+import shlex
+from preswald.server import start_server
+import subprocess
+
+script_dir = "{script_dir}"
+script_path = "{script_path}"
+remote_script_dir = "{remote_script_dir}"
+container_name = "{container_name}"
+port = {port}
+
+# This is where we will need to sync between the docker deployment and this one, but fine for now.
+image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install("preswald")  # this fetches the latest version from pypi
+)
+# TODO: need to add in dependencies from user script
+# could use add_local_python_source for local testing / debugging too
+# https://modal.com/docs/reference/modal.Image#add_local_python_source
+
+app = modal.App(name=container_name, image=image)
+
+@app.function()
+@modal.web_server(port)
+def run():
+    start_server(script=script_path, port=port)

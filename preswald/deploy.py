@@ -218,11 +218,64 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         raise Exception(f"Deployment failed: {str(e)}")
 
 
-def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
+# def deploy_modal(script_path: str, port: int = 8501) -> str:
+#     """
+#     Deploy a Preswald app on Modal.
+
+#     This function creates a Modal container that will run your Preswald application.
+
+#     Args:
+#         script_path: Path to the Preswald application script
+
+#     Returns:
+#         str: The URL where the application can be accessed
+#     """
+#     script_path = os.path.abspath(script_path)
+#     script_dir = Path(script_path).parent
+#     script_name = Path(script_path).name
+#     remote_script_dir = "/app"
+
+#     # TODO: should add some sort of UUID or user token here
+#     container_name = get_container_name(script_path)
+
+#     try:
+#         import modal
+#         import shlex
+
+#         # This is where we will need to sync between the docker deployment and this one, but fine for now.
+#         image = (
+#             modal.Image.debian_slim(python_version="3.11")
+#             .pip_install("preswald")  # this fetches the latest version from pypi
+#             .add_local_dir(local_path=script_dir, remote_path=remote_script_dir)
+#         )
+#         # TODO: need to add in dependencies from user script
+#         # could use add_local_python_source for local testing / debugging too
+#         # https://modal.com/docs/reference/modal.Image#add_local_python_source
+
+#         app = modal.App(name=container_name, image=image)
+
+#         if not script_dir.exists():
+#             raise RuntimeError(
+#                 "No directory found! Place the script with your preswald app in the same directory."
+#             )
+
+#         @app.function()
+#         @modal.web_server(port)
+#         def run():
+#             start_server(script=script_path, port=port)
+
+
+#         return "modal-url"
+#     except Exception as e:
+#         raise Exception(f"Modal deployment failed. Please try again. {str(e)}")
+
+
+def deploy_docker(script_path: str, target: str = "local", port: int = 8501) -> str:
     """
-    Deploy a Preswald app locally using Docker.
+    Deploy a Preswald app.
 
     This function creates a Docker container that will run your Preswald application.
+    Or, uses modal, which circumvents using Docker.
     It maintains a deployment directory next to your script for rebuilding and updating.
 
     Args:
@@ -264,6 +317,58 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
     if Path(script_path).name != "app.py":
         shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
 
+    # Store deployment info
+    deployment_info = {
+        "script": script_path,
+        "container_name": container_name,
+        "preswald_version": preswald_version,
+    }
+    with open(deploy_dir / "deployment.json", "w") as f:
+        json.dump(deployment_info, f, indent=2)
+
+    # TODO or use the modal template and then call modal run instead
+    # if modal, we can skip the dockerfile part
+
+    if target == "modal":
+        try:
+            # Create startup script
+            startup_template = read_template("modal.py")
+
+            remote_script_dir = "/app"
+            # TODO: should add some sort of UUID or user token here
+
+            startup_script = startup_template.format(
+                script_dir=deploy_dir,
+                script_path=deploy_dir / "app.py",
+                remote_script_dir=remote_script_dir,
+                container_name=container_name,
+                port=port,
+            )
+
+            # TODO: this might have to be changed to match the initial script
+            with open(deploy_dir / "run.py", "w") as f:
+                f.write(startup_script)
+
+            # Deploying to Modal
+            print(f"Serving Modal app {container_name}...")
+            return "asdf"
+
+            # url_result = subprocess.run(
+            #     [
+            #         "modal",
+            #         "serve",
+            #         "run.py",
+            #     ],
+            #     check=True,
+            #     cwd=deploy_dir,
+            #     text=True,
+            #     capture_output=True,
+            # )
+
+            # return url_result
+        except:
+            raise Exception
+
     # Create startup script
     startup_template = read_template("run.py")
     startup_script = startup_template.format(port=port)
@@ -277,15 +382,6 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
     )
     with open(deploy_dir / "Dockerfile", "w") as f:
         f.write(dockerfile_content)
-
-    # Store deployment info
-    deployment_info = {
-        "script": script_path,
-        "container_name": container_name,
-        "preswald_version": preswald_version,
-    }
-    with open(deploy_dir / "deployment.json", "w") as f:
-        json.dump(deployment_info, f, indent=2)
 
     try:
         # Stop any existing container
@@ -346,7 +442,7 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
         )
 
 
-def stop(script_path: str = None) -> None:
+def stop_docker(script_path: str = None) -> None:
     """
     Stop a running Preswald deployment.
 
