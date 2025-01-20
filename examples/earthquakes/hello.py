@@ -21,8 +21,8 @@ filtered_data = data[data['Magnitude'] >=
                      min_magnitude.get('value', min_magnitude)]
 
 # Summary statistics
-text(f"### Total Earthquakes with Magnitude ≥ {
-     min_magnitude.get('value', min_magnitude)}: {len(filtered_data)}")
+text(f"### Total Earthquakes with Magnitude ≥ {min_magnitude.get('value', min_magnitude)}: {len(filtered_data)}")
+
 
 # Interactive map using Plotly
 text("## Earthquake Locations")
