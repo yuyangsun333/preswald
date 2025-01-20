@@ -117,8 +117,8 @@ CORE_DEPENDENCIES = [
     "networkx>=3.0",
     "Requests==2.32.3",
     "setuptools==75.1.0",
-    "psycopg2>=2.9.10",
-    "openai==1.59.7"
+    "psycopg2-binary>=2.9.10",
+    "openai==1.59.7",
 ]
 
 # Define additional dependencies for development
