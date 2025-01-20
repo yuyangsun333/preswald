@@ -127,9 +127,29 @@ def deploy(script, target, port, log_level):
         log_level = configure_logging(config_path=config_path, level=log_level)
 
         url = deploy_app(script, target, port=port)
-        click.echo(f"\nDeployment successful! 🎉")
-        click.echo(f"Your app is running at: {url}")
 
+       ## Deployment Sucess Message
+        success_message = """
+        
+        ===========================================================\n
+        🎉 Deployment successful! ✅
+
+        🌐 Your app is live and running at:
+        {url}
+
+        💡 Next Steps:
+            - Open the URL above in your browser to view your app
+
+        🚀 Deployment Summary:
+            - App: {script}
+            - Environment: {target}
+            - Port: {port}
+        """.format(script=script, url=url, target=target, port=port)
+
+        click.echo(click.style(success_message, fg="green"))
+
+
+    
     except Exception as e:
         click.echo(f"Error deploying app: {e} ❌")
 
