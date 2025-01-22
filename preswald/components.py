@@ -14,7 +14,7 @@ def generate_id(prefix="component"):
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
-def checkbox(label, default=False):
+def checkbox(label, default=False, size=1.0):
     """Create a checkbox component with consistent ID based on label."""
     # Create a consistent ID based on the label
     component_id = f"checkbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
@@ -29,13 +29,14 @@ def checkbox(label, default=False):
         "type": "checkbox",
         "id": component_id,
         "label": label,
-        "value": current_value
+        "value": current_value,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def slider(label: str, min_val: float = 0.0, max_val: float = 100.0, step: float = 1.0, default: float = None) -> dict:
+def slider(label: str, min_val: float = 0.0, max_val: float = 100.0, step: float = 1.0, default: float = None, size: float = 1.0) -> dict:
     """Create a slider component with consistent ID based on label"""
     # Create a consistent ID based on the label
     component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
@@ -52,7 +53,8 @@ def slider(label: str, min_val: float = 0.0, max_val: float = 100.0, step: float
         "min": min_val,
         "max": max_val,
         "step": step,
-        "value": current_value
+        "value": current_value,
+        "size": size
     }
     
     logger.debug(f"Creating slider component with id {component_id}, label: {label}")
@@ -62,20 +64,21 @@ def slider(label: str, min_val: float = 0.0, max_val: float = 100.0, step: float
     
     return component
 
-def button(label):
+def button(label, size=1.0):
     """Create a button component."""
     id = generate_id("button")
     logger.debug(f"Creating button component with id {id}, label: {label}")
     component = {
         "type": "button",
         "id": id,
-        "label": label
+        "label": label,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def selectbox(label, options, default=None):
+def selectbox(label, options, default=None, size=1.0):
     """Create a select component with consistent ID based on label."""
     # Create a consistent ID based on the label
     component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
@@ -91,13 +94,14 @@ def selectbox(label, options, default=None):
         "id": component_id,
         "label": label,
         "options": options,
-        "value": current_value
+        "value": current_value,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def text_input(label, placeholder=""):
+def text_input(label, placeholder="", size=1.0):
     """Create a text input component with consistent ID based on label."""
     # Create a consistent ID based on the label
     component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
@@ -113,13 +117,14 @@ def text_input(label, placeholder=""):
         "id": component_id,
         "label": label,
         "placeholder": placeholder,
-        "value": current_value
+        "value": current_value,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def progress(label, value=0):
+def progress(label, value=0, size=1.0):
     """Create a progress component."""
     id = generate_id("progress")
     logger.debug(f"Creating progress component with id {id}, label: {label}")
@@ -127,26 +132,28 @@ def progress(label, value=0):
         "type": "progress",
         "id": id,
         "label": label,
-        "value": value
+        "value": value,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def spinner(label):
+def spinner(label, size=1.0):
     """Create a spinner component."""
     id = generate_id("spinner")
     logger.debug(f"Creating spinner component with id {id}, label: {label}")
     component = {
         "type": "spinner",
         "id": id,
-        "label": label
+        "label": label,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def alert(message, level="info"):
+def alert(message, level="info", size=1.0):
     """Create an alert component."""
     id = generate_id("alert")
     logger.debug(f"Creating alert component with id {id}, message: {message}")
@@ -154,13 +161,14 @@ def alert(message, level="info"):
         "type": "alert",
         "id": id,
         "message": message,
-        "level": level
+        "level": level,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def image(src, alt="Image"):
+def image(src, alt="Image", size=1.0):
     """Create an image component."""
     id = generate_id("image")
     logger.debug(f"Creating image component with id {id}, src: {src}")
@@ -168,13 +176,14 @@ def image(src, alt="Image"):
         "type": "image",
         "id": id,
         "src": src,
-        "alt": alt
+        "alt": alt,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
-def text(markdown_str):
+def text(markdown_str, size=1.0):
     """Create a text/markdown component."""
     id = generate_id("text")
     logger.debug(f"Creating text component with id {id}")
@@ -182,7 +191,8 @@ def text(markdown_str):
         "type": "text",
         "id": id,
         "markdown": markdown_str,
-        "value": markdown_str
+        "value": markdown_str,
+        "size": size
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)

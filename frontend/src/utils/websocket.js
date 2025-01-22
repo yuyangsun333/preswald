@@ -74,7 +74,7 @@ class WebSocketClient {
                     });
 
                     switch (data.type) {
-                        case 'inital_state':
+                        case 'initial_state':
                             this.componentStates = { ...data.states };
                             console.log("[WebSocket] Initial states loaded:", this.componentStates);
                             break;
@@ -90,15 +90,20 @@ class WebSocketClient {
                             break;
 
                         case 'components':
-                            data.components.forEach(component => {
-                                if (component.id && 'value' in component) {
-                                    this.componentStates[component.id] = component.value;
-                                    console.log("[WebSocket] Component state updated:", {
-                                        componentId: component.id,
-                                        value: component.value
+                            // Handle new row-based layout structure
+                            if (data.components && data.components.rows) {
+                                data.components.rows.forEach(row => {
+                                    row.forEach(component => {
+                                        if (component.id && 'value' in component) {
+                                            this.componentStates[component.id] = component.value;
+                                            console.log("[WebSocket] Component state updated:", {
+                                                componentId: component.id,
+                                                value: component.value
+                                            });
+                                        }
                                     });
-                                }
-                            });
+                                });
+                            }
                             break;
 
                         case 'connections_update':
