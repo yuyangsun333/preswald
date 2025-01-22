@@ -238,15 +238,63 @@ def convert_to_serializable(obj):
         return None
     return obj
 
+class LayoutManager:
+    """Manages the layout of components in rows based on their sizes"""
+    
+    def __init__(self):
+        self.rows = []
+        self.current_row = []
+        self.current_row_size = 0.0
+        
+    def add_component(self, component):
+        """Add a component to the layout"""
+        size = float(component.get('size', 1.0))
+        
+        # Handle separator component type which forces a new row
+        if component.get('type') == 'separator':
+            self.finish_current_row()
+            return
+            
+        # If component size is greater than remaining space, start new row
+        if self.current_row_size + size > 1.0:
+            self.finish_current_row()
+            
+        # Add component to current row
+        self.current_row.append(component)
+        self.current_row_size += size
+        
+        # If row is exactly full, finish it
+        if self.current_row_size >= 1.0:
+            self.finish_current_row()
+    
+    def finish_current_row(self):
+        """Complete current row and start a new one"""
+        if self.current_row:
+            # Calculate flex values for the row
+            total_size = sum(float(c.get('size', 1.0)) for c in self.current_row)
+            for component in self.current_row:
+                component_size = float(component.get('size', 1.0))
+                component['flex'] = component_size / total_size
+            
+            self.rows.append(self.current_row)
+            self.current_row = []
+            self.current_row_size = 0.0
+    
+    def get_layout(self):
+        """Get the final layout with all components organized in rows"""
+        self.finish_current_row()  # Ensure any remaining components are added
+        return self.rows
+
 def get_rendered_components():
-    """Get all rendered components as JSON"""
+    """Get all rendered components as JSON, organized into rows"""
     start_time = time.time()
     logger.debug(f"[RENDER] Getting rendered components, count: {len(_rendered_html)}")
-    components = []
     
-    # Create a set to track unique component IDs
+    # Create layout manager
+    layout_manager = LayoutManager()
     seen_ids = set()
     
+    # Process components
     for item in _rendered_html:
         try:
             if isinstance(item, dict):
@@ -265,24 +313,37 @@ def get_rendered_components():
                             if current_state is not None:
                                 cleaned_item['value'] = _clean_nan_values(current_state)
                                 logger.debug(f"[RENDER] Updated component {component_id} with state: {current_state}")
-                        components.append(cleaned_item)
+                        layout_manager.add_component(cleaned_item)
                         seen_ids.add(component_id)
                         logger.debug(f"[RENDER] Added component with state: {cleaned_item}")
                 else:
                     # Components without IDs are added as-is
-                    components.append(cleaned_item)
+                    layout_manager.add_component(cleaned_item)
                     logger.debug(f"[RENDER] Added component without ID: {cleaned_item}")
             else:
                 # Convert HTML string to component data
                 component = {
                     "type": "html",
-                    "content": str(item)
+                    "content": str(item),
+                    "size": 1.0  # HTML components take full width
                 }
-                components.append(component)
+                layout_manager.add_component(component)
                 logger.debug(f"[RENDER] Added HTML component: {component}")
         except Exception as e:
             logger.error(f"[RENDER] Error processing component: {e}", exc_info=True)
             continue
     
+    # Get final layout
+    rows = layout_manager.get_layout()
     logger.debug(f"[RENDER] Total rendering took {time.time() - start_time:.3f}s")
-    return components
+    return {"rows": rows}
+
+# Add separator component function
+def separator():
+    """Create a separator component that forces a new row."""
+    component = {
+        "type": "separator",
+        "id": str(uuid.uuid4())
+    }
+    _rendered_html.append(component)
+    return component
