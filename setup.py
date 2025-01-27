@@ -119,6 +119,7 @@ CORE_DEPENDENCIES = [
     "setuptools==75.1.0",
     "psycopg2-binary>=2.9.10",
     "openai==1.59.7",
+    "celery>=5.4.0",
 ]
 
 # Define additional dependencies for development
@@ -130,7 +131,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.31",
+    version="0.1.30",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
