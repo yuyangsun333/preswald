@@ -324,7 +324,7 @@ async def serve_index():
 async def get_connections():
     """Get all active connections and config-defined connections with metadata"""
     # Try to get latest results before returning
-    await update_connections_from_celery()
+    # await update_connections_from_celery()
     
     return {
         "connections": connections_cache["connections"],
@@ -394,16 +394,16 @@ async def run_server():
         connections_parsing_status["is_parsing"] = True
         connections_parsing_status["error"] = None
         
-        task = parse_connections_task.delay()
-        connections_parsing_status["task_id"] = task.id
-        logger.info(f"Started background connections parsing task with ID: {task.id}")
+        # task = parse_connections_task.delay()
+        # connections_parsing_status["task_id"] = task.id
+        # logger.info(f"Started background connections parsing task with ID: {task.id}")
         
         async def check_celery_results():
             while True:
                 await update_connections_from_celery()
                 await asyncio.sleep(5)  # Check every 5 seconds
         
-        asyncio.create_task(check_celery_results())
+        # asyncio.create_task(check_celery_results())
         
         config = uvicorn.Config(app, host="0.0.0.0", port=8501, loop="asyncio")
         server = uvicorn.Server(config)
