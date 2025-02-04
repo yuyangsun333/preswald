@@ -127,12 +127,13 @@ DEV_DEPENDENCIES = [
     "pytest>=8.3",
     "build",
     "isort",
+    "twine",
 ]
 
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.32",
+    version="0.1.33",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",

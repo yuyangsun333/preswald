@@ -1,5 +1,5 @@
 # Initialize the Preswald package
-__version__ = "0.1.32"
+__version__ = "0.1.33"
 
 from .interfaces import *
 from . import interfaces as _interfaces
