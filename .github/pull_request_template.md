@@ -1,4 +1,3 @@
-// File: .github/pull_request_template.md
 ---
 name: Pull Request
 about: Create a pull request to contribute to the project

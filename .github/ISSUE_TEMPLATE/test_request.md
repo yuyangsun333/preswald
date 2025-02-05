@@ -1,4 +1,3 @@
-// File: .github/ISSUE_TEMPLATE/test_request.md
 ---
 name: Test Request
 about: Request new tests or improvements to existing tests

@@ -1,4 +1,3 @@
-// File: .github/ISSUE_TEMPLATE/example_request.md
 ---
 name: Example Request
 about: Request a new example for the SDK
