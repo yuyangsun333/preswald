@@ -43,7 +43,7 @@ def preprocess_data(df):
     return df
 
 # Read the dataset
-df = pd.read_csv("real_estate.csv")
+df = pd.read_csv("https://preswald.s3.us-east-1.amazonaws.com/real_estate.csv")
 df = preprocess_data(df)
 
 # 2. Price Distribution by Property Type
