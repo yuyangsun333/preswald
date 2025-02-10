@@ -57,7 +57,7 @@ def init(name):
             ".gitignore": "gitignore",
             "README.md": "readme.md",
             "pyproject.toml": "pyproject.toml",
-            os.path.join("data", "sample.csv"): "sample.csv",
+            "data/sample.csv": "sample.csv",
         }
 
         for file_name, template_name in file_templates.items():
@@ -378,6 +378,7 @@ def tutorial(ctx):
 
     if not os.path.exists(tutorial_script):
         click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
+        click.echo("👉 Please run this command from the root directory of the project.")
         return
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
