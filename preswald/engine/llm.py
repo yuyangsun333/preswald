@@ -143,7 +143,7 @@ async def main():
         text="""
 Below is a python code. Please go through the code and give me the file or data connections that are being made/created in the code.
 
-from preswald import text, connect, view, slider, plotly, connections, Workflow, workflow_dag
+from preswald import text, connect, table, slider, plotly, connections, Workflow, workflow_dag
 import pandas as pd
 import plotly.express as px
 

@@ -1,4 +1,4 @@
-from preswald import text, plotly, connect, get_df, view
+from preswald import text, plotly, connect, get_df, table
 import pandas as pd
 import plotly.express as px
 
@@ -24,4 +24,4 @@ fig.update_layout(template='plotly_white')
 plotly(fig)
 
 # Show the data
-view(df)
+table(df)
