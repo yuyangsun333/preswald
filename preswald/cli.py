@@ -26,6 +26,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 # Initialize telemetry service
 telemetry = TelemetryService()
 
+
 @click.group()
 @click.version_option()
 def cli():
@@ -194,7 +195,7 @@ def run(port, log_level, disable_new_tab):
     "--api-key",
     help="Structured Cloud API key for structured deployment",
 )
-def deploy(script, target, port, log_level, github, api_key):
+def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
     """
     Deploy your Preswald app.
 
@@ -443,13 +444,15 @@ def tutorial(ctx):
 
     This command runs the tutorial app located in the package's tutorial directory.
     """
+    import contextlib
+
     import preswald
 
     package_dir = os.path.dirname(preswald.__file__)
-    tutorial_script = os.path.join(package_dir, "tutorial", "hello.py")
+    tutorial_dir = os.path.join(package_dir, "tutorial")
 
-    if not os.path.exists(tutorial_script):
-        click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
+    if not os.path.exists(tutorial_dir):
+        click.echo(f"Error: Tutorial directory '{tutorial_dir}' not found. ❌")
         click.echo("👉 The tutorial files may be missing from your installation.")
         return
 
@@ -458,8 +461,10 @@ def tutorial(ctx):
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 
-    # Invoke the 'run' command with the tutorial script path
-    ctx.invoke(run, port=8501)
+    # Use context manager to temporarily change directory
+    with contextlib.chdir(tutorial_dir):
+        # Invoke the 'run' command from the tutorial directory
+        ctx.invoke(run, port=8501)
 
 
 if __name__ == "__main__":
