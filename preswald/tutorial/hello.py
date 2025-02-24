@@ -3,9 +3,12 @@ import plotly.express as px
 from preswald import (
     Workflow,
     WorkflowAnalyzer,
+    alert,
+    checkbox,
     connect,
     get_df,
     plotly,
+    progress,
     selectbox,
     separator,
     slider,
@@ -24,7 +27,7 @@ workflow = Workflow()
 def welcome_message():
     text("# 🐵 Welcome to Preswald!")
     text(
-"""
+        """
 This tutorial app showcases **all the components** available in the Preswald library, with explanations and usage examples. For more details, check out the [GitHub repository](https://github.com/StructuredLabs/preswald) and the [documentation](https://docs.preswald.com).
 """
     )
@@ -35,7 +38,7 @@ This tutorial app showcases **all the components** available in the Preswald lib
 def text_component_demo():
     text("## 1. Displaying Text with `text()`")
     text(
-"""
+        """
 The `text()` function allows you to display formatted text using **Markdown**. You can create headers, lists, and even embed code snippets.
 **Example:**
 ```python
@@ -58,7 +61,7 @@ def load_data():
     table(df, limit=10)  # Display first 10 rows
 
     text(
-"""
+        """
 The `table()` component displays data in a tabular format.
 **Example:**
 ```python
@@ -77,7 +80,7 @@ def plot_data(load_data):
     df = load_data
     text("## 3. Visualizing Data with `plotly()`")
     text(
-"""
+        """
 Now, let's create an interactive scatter plot using Plotly and embed it using the `plotly()` component.
 """
     )
@@ -102,7 +105,7 @@ Now, let's create an interactive scatter plot using Plotly and embed it using th
     plotly(fig)
 
     text(
-"""
+        """
 The `plotly()` function embeds interactive Plotly charts into your app.
 **Example:**
 ```python
@@ -135,7 +138,7 @@ def slider_demo(load_data):
     table(df.head(num_rows))
 
     text(
-"""
+        """
 The `slider()` component allows users to select a numerical value.
 **Example:**
 ```python
@@ -175,7 +178,7 @@ def selectbox_demo(load_data):
     plotly(fig)
 
     text(
-"""
+        """
 The `selectbox()` component allows users to select from a list of options.
 **Example:**
 ```python
@@ -211,7 +214,7 @@ def separator_demo(load_data):
     table(df.describe())
 
     text(
-"""
+        """
 The `separator()` component helps organize your app content by adding visual breaks.
 **Example:**
 ```python
@@ -230,7 +233,7 @@ This improves the readability of your app by clearly distinguishing between diff
 def workflow_dag_demo():
     text("## 7. Visualizing Workflow Dependencies with `workflow_dag()`")
     text(
-"""
+        """
 The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualize task dependencies in your workflow.
 """
     )
@@ -258,7 +261,7 @@ The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualiz
     workflow_dag(demo_workflow, title="Sample Workflow Dependency Graph")
 
     text(
-"""
+        """
 The `workflow_dag()` component helps visualize dependencies and relationships within workflows.
 **Example:**
 ```python
@@ -310,7 +313,7 @@ def workflow_analyzer_demo():
         text(f"- Group {i}: {', '.join(group)}")
 
     text(
-"""
+        """
 The `WorkflowAnalyzer()` helps identify bottlenecks and optimize execution by highlighting critical paths and parallelizable tasks.
 **Example:**
 ```python
@@ -342,7 +345,7 @@ for i, group in enumerate(parallel_groups, 1):
 def retry_policy_demo():
     text("## 9. Making Workflows More Reliable with `RetryPolicy`")
     text(
-"""
+        """
 The `RetryPolicy` helps handle failures in your workflow by automatically retrying tasks if they fail. You can control how many times a task is retried, how long to wait between retries, and which errors should trigger a retry.
 ### How It Works:
 1. **Set a Retry Policy for the Whole Workflow:** This will apply to all tasks unless you override it for specific ones.
@@ -363,6 +366,33 @@ def fetch_data():
 - **Customizable:** Set different retry rules for different tasks.
 """
     )
+
+
+@workflow.atom()
+def alert_demo():
+    text("## 10. Displaying Alerts with `alert()`")
+    text(
+        "The `alert()` function displays a message to the user, which can be used to provide information, warnings, or errors."
+    )
+    alert("hi", 1.0)
+
+
+@workflow.atom()
+def checkbox_demo():
+    text("## 11. Adding Interactivity with `checkbox()`")
+    text(
+        "The `checkbox()` function allows users to select or deselect an option using a checkbox."
+    )
+    checkbox(label="Select me!")
+
+
+@workflow.atom()
+def progress_demo():
+    text("## 12. Tracking Progress with `progress()`")
+    text(
+        "The `progress()` function displays a progress bar to indicate the completion status of a task."
+    )
+    progress(0.8)
 
 
 # --- FINAL MESSAGE ---
