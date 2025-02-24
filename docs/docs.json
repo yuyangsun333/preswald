@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "maple",
   "name": "Preswald",
   "colors": {
     "primary": "#000000",
@@ -103,11 +103,6 @@
           "anchor": "PyPI",
           "href": "https://pypi.org/project/preswald/",
           "icon": "code"
-        },
-        {
-          "anchor": "Copilot",
-          "href": "https://marketplace.visualstudio.com/items?itemName=preswald.preswald",
-          "icon": "brain"
         }
       ]
     }
