@@ -19,8 +19,7 @@
               "introduction",
               "quickstart",
               "configuration",
-              "coreconcepts",
-              "contributing"
+              "coreconcepts"
             ]
           },
           {
@@ -35,16 +34,16 @@
             ]
           },
           {
-            "group": "Layout",
-            "pages": [
-              "layout/guide"
-            ]
-          },
-          {
             "group": "Usage",
             "pages": [
               "usage/examples",
               "usage/troubleshooting"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing"
             ]
           }
         ]
@@ -53,7 +52,7 @@
         "tab": "SDK Reference",
         "groups": [
           {
-            "group": "ui",
+            "group": "UI",
             "pages": [
               "sdk/alert",
               "sdk/checkbox",
@@ -69,7 +68,7 @@
             ]
           },
           {
-            "group": "data",
+            "group": "Data",
             "pages": [
               "sdk/connect",
               "sdk/get_df",
@@ -77,11 +76,17 @@
             ]
           },
           {
-            "group": "workflow",
+            "group": "Workflow",
             "pages": [
               "sdk/retrypolicy",
               "sdk/workflow",
               "sdk/workflow_analyzer"
+            ]
+          },
+          {
+            "group": "Layout",
+            "pages": [
+              "layout/guide"
             ]
           }
         ]
@@ -91,12 +96,12 @@
       "anchors": [
         {
           "anchor": "Community",
-          "href": "https://join.slack.com/t/structured-users/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ",
+          "href": "https://join.slack.com/t/preswald-community/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ",
           "icon": "slack"
         },
         {
           "anchor": "Blog",
-          "href": "https://structuredlabs.substack.com/",
+          "href": "https://blog.preswald.com/",
           "icon": "newspaper"
         },
         {
@@ -120,10 +125,6 @@
       {
         "label": "Website",
         "href": "https://preswald.com"
-      },
-      {
-        "label": "Support",
-        "href": "mailto:amrutha@structuredlabs.com"
       }
     ],
     "primary": {
