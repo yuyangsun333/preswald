@@ -1,7 +1,9 @@
-![Banner](assets/banner.png)
+<div style="text-align: center;">
+<img src="assets/banner.png" width="80%" alt="Banner">
+</div>
 
 <p align="center">
-    <em>🐵 Your lightweight companion for building simple, interactive, and dynamic data apps in Python.</em>
+    <em>Turn Python scripts into interactive data apps and deploy them anywhere in one command.</em>
 </p>
 <p align="center">
     <a href="LICENSE">
@@ -25,8 +27,8 @@
 <a href="https://docs.preswald.com" target="_blank">
 <img src="https://img.shields.io/badge/Documentation-Read-green?style=for-the-badge" alt="Documentation">
 </a>
-<a href="https://studio.structuredlabs.com" target="_blank">
-<img src="https://img.shields.io/badge/Demo-Try-orange?style=for-the-badge" alt="Studio">
+<a href="https://app.preswald.com" target="_blank">
+<img src="https://img.shields.io/badge/Cloud-Get Started-orange?style=for-the-badge" alt="Studio">
 </a>
 <a href="https://cal.com/structured" target="_blank">
 <img src="https://img.shields.io/badge/Book%20a%20Demo-Schedule-red?style=for-the-badge" alt="Book a Demo">
@@ -35,14 +37,20 @@
 
 ## **What is Preswald?**
 
-Preswald is a full-stack platform for building, deploying, and managing interactive data applications. It combines ingestion, storage, transformation, and visualization into one lightweight and powerful SDK. Whether you're prototyping internal tools or deploying production-grade apps, Preswald reduces complexity and cost without compromising flexibility.
+Preswald is an open-source framework for building **data apps, dashboards, and internal tools** with just Python. It gives you **pre-built UI components** like tables, charts, and forms, so you don’t have to write frontend code. Users can interact with your app, changing inputs, running queries, and updating visualizations, without you needing to manage the UI manually.
 
-- Code-First Simplicity. Minimal Python and SQL for powerful apps
-- End-to-End Coverage. Handle ingestion, ETL, and visualization in one platform
-- Efficient by Design. Avoid the sprawling complexity of the modern data stack while keeping what works.
-- Connect to CSV, JSON, Parquet, or SQL databases in seconds.
-- Fully Customizable Themes. Your app, your brand—just tweak images and names in `preswald.toml`.
-- Go live on your machine with a single command.
+Preswald tracks state and dependencies, so computations update only when needed instead of re-running everything from scratch. It uses a **workflow DAG** to manage execution order, making apps more predictable and performant. Preswald lets you **turn Python scripts into shareable, production-ready applications** easily. 
+
+## **Key Features**
+
+- Add UI components to python scripts – Drop in buttons, text inputs, tables, and charts that users can interact with.
+- Stateful execution – Automatically tracks dependencies and updates results when inputs change.
+- Structured computation – Uses a DAG-based execution model to prevent out-of-order runs.
+- Deploy with one command – Run preswald deploy and instantly share your app online.
+- Query and display data – Fetch live data from databases, or local files and display it in a UI.
+- Build interactive reports – Create dashboards where users can change filters and see results update.
+- Run locally or in the cloud – Start your app on your laptop or host it in Preswald Cloud for easy access.
+- Share with a link – No need to send scripts or install dependencies—just share a URL.
 
 <br>
 
@@ -132,44 +140,20 @@ Open your browser, and voilà—your first Preswald app is live!
 
 ### **4. Deploy Your App to the Cloud**
 
-Once you've built and tested your app locally, deploying it to the cloud is just as simple. Preswald integrates with **Google Cloud Run**, allowing you to host your app in a scalable, serverless environment with just one command.
-
-To deploy your app, set up Google Cloud credentials and a project. Then, run:
+Preswald provides its own cloud platform for hosting and sharing your applications. You can authenticate with GitHub, create an organization, and generate an API key at [app.preswald.com](https://app.preswald.com). Once set up, deploying is as simple as running:  
 
 ```bash
-preswald deploy hello.py --project <your-gcp-project>
+preswald deploy hello.py --target structured
 ```
 
-Once deployed, you’ll see a URL where your app is live, for example:
+The first time you deploy, you'll be prompted to enter your **GitHub username** and **Preswald API key**. After that, your app will be built, deployed, and accessible online.  
 
 ```
-🌐 App deployed at: https://your-app-name-abc123.run.app
+🌐 App deployed at: https://your-app-name-abc123.preswald.app
 ```
 
-## **💡 Examples**
+Now your app is live, shareable, and scalable—without any extra setup.
 
-### **Example 1: Hello World**
-
-```python
-from preswald import text
-
-text("# Hello, World!")
-```
-
-### **Example 2: Interactive Dashboard**
-
-```python
-from preswald import text, slider, connect, get_df, view
-import pandas as pd
-
-
-text("# Interactive Dashboard")
-connect() # load in sources from preswald.toml
-slider_value = slider("Rows to Display", min_val=10, max_val=100, step=10, default=50)
-
-df = get_df("sample_data") # name of csv source in preswald.toml
-view(df, limit=slider_value)
-```
 
 ## **🔧 Configuration**
 
@@ -182,15 +166,21 @@ Preswald uses `preswald.toml` for project settings and theming. It’s straightf
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
+slug = "preswald-project"
+entrypoint = "hello.py"
 
 [branding]
 name = "Preswald Project"
 logo = "images/logo.png"
 favicon = "images/favicon.ico"
-primaryColor = "#4CAF50"
+primaryColor = "#F89613"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
 
 [logging]
-level = "INFO" # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 ```
 
@@ -211,7 +201,7 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md).
 ## **🎉 Join the Community**
 
 - **GitHub Issues**: Found a bug? Let us know [here](https://github.com/StructuredLabs/preswald/issues).
-- **Community Forum**: Reach out [here](https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email)
+- **Community Forum**: Reach out [here](https://join.slack.com/t/preswald-community/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ)
 - **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/StructuredLabs/preswald/discussions).
 - **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/StructuredLabs/preswald/graphs/contributors).
 
