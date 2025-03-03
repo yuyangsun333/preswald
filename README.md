@@ -1,6 +1,7 @@
-<div style="text-align: center;">
-<img src="assets/banner.png" width="80%" alt="Banner">
-</div>
+<p align="center">
+  <img src="assets/banner.png" width="80%" alt="Banner">
+</p>
+
 
 <p align="center">
     <em>Turn Python scripts into interactive data apps and deploy them anywhere in one command.</em>
