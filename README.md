@@ -144,7 +144,7 @@ Open your browser, and voilà—your first Preswald app is live!
 Preswald provides its own cloud platform for hosting and sharing your applications. You can authenticate with GitHub, create an organization, and generate an API key at [app.preswald.com](https://app.preswald.com). Once set up, deploying is as simple as running:  
 
 ```bash
-preswald deploy hello.py --target structured
+preswald deploy --target structured
 ```
 
 The first time you deploy, you'll be prompted to enter your **GitHub username** and **Preswald API key**. After that, your app will be built, deployed, and accessible online.  

@@ -4,16 +4,11 @@ icon: "code"
 description: "Deploy your app to a cloud environment or a local container."
 ---
 
-# `preswald deploy <file_name>`
+# `preswald deploy`
 
 The `preswald deploy` command deploys your application to a desired environment, such as Structured Cloud, Google Cloud Platform, or a local container. It streamlines the deployment process, handling configuration and execution seamlessly.
 
 Note: `preswald deploy` creates a `.env.structured` in the current directory for Structured Cloud deployments that is useful for `preswald stop` and `preswald deployments`.
-
-## Arguments
-
-- **`file_name` (str):**  
-  The path to the Python script that contains your application code. This is the script to be deployed.
 
 ## Options
 
@@ -60,7 +55,7 @@ This command packages your app into a container and deploys it to Structured Clo
 To deploy your app to Google Cloud Run:
 
 ```bash
-preswald deploy --target gcp hello.py
+preswald deploy --target gcp
 ```
 
 This command packages your app into a container and deploys it to Google Cloud Run, providing a shareable live preview link.
@@ -72,7 +67,7 @@ This command packages your app into a container and deploys it to Google Cloud R
 To deploy your app to AWS:
 
 ```bash
-preswald deploy --target aws hello.py
+preswald deploy --target aws
 ```
 
 Install and configure AWS CLI before running this command.
@@ -84,7 +79,7 @@ Install and configure AWS CLI before running this command.
 To build and test your app locally without deploying it to the cloud:
 
 ```bash
-preswald deploy --target local hello.py
+preswald deploy --target local
 ```
 
 This creates a container locally for testing purposes.
@@ -96,7 +91,7 @@ This creates a container locally for testing purposes.
 If no `--target` is specified, the deployment defaults to local execution:
 
 ```bash
-preswald deploy hello.py
+preswald deploy
 ```
 
 This builds and runs your app in a local container.
@@ -105,9 +100,9 @@ This builds and runs your app in a local container.
 
 ## What Preswald Handles
 
-- **Cloud Deployment:** Automates the process of containerizing your app, configuring the environment, and deploying it to the target platform.
-- **Local Testing:** Builds a container locally to let you verify your app before cloud deployment.
-- **Live Preview:** Provides a shareable URL (for cloud deployments) so others can interact with your app.
+- **Cloud deployment:** Automates the process of containerizing your app, configuring the environment, and deploying it to the target platform.
+- **Local testing:** Builds a container locally to let you verify your app before cloud deployment.
+- **Live preview:** Provides a shareable URL (for cloud deployments) so others can interact with your app.
 
 ---
 

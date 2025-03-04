@@ -1,7 +1,7 @@
 ---
 title: "Introduction"
 icon: "lightbulb"
-description: "The lightweight, code-first SDK for interactive data apps."
+description: "Turn Python scripts into shareable, interactive data apps."
 ---
 
 <img
@@ -10,15 +10,20 @@ description: "The lightweight, code-first SDK for interactive data apps."
   alt="Hero Light"
 />
 
-Preswald is a lightweight, code-first platform designed to simplify the creation of interactive data applications. It unifies data ingestion, transformation, and visualization into a single, intuitive SDK. Whether you're prototyping or building production-grade apps, Preswald reduces complexity without compromising flexibility.
+Preswald is an open-source framework for building **data apps, dashboards, and internal tools** with just Python. It gives you **pre-built UI components** like tables, charts, and forms, so you don’t have to write frontend code. Users can interact with your app, changing inputs, running queries, and updating visualizations, without you needing to manage the UI manually.
 
-## Key Features
+Preswald tracks state and dependencies, so computations update only when needed instead of re-running everything from scratch. It uses a **workflow DAG** to manage execution order, making apps more predictable and performant. Preswald lets you **turn Python scripts into shareable, production-ready applications** easily. 
 
-- Handle the entire data workflow—ingestion, transformation, and visualization—without juggling multiple tools.
-- Configure your app effortlessly with a `preswald.toml` file—perfect for quick changes to themes, branding, or connections.
-- Save time with prebuilt interactive components like sliders, dropdowns, and tables—no need to code from scratch.
-- Deploy your app in seconds, whether locally or in the cloud, with a single, reliable command.
-- Leverage Preswald’s Python API and CLI to extend functionality, making it a great fit for your team's unique needs.
+## **Key Features**
+
+- Add UI components to python scripts – Drop in buttons, text inputs, tables, and charts that users can interact with.
+- Stateful execution – Automatically tracks dependencies and updates results when inputs change.
+- Structured computation – Uses a DAG-based execution model to prevent out-of-order runs.
+- Deploy with one command – Run preswald deploy and instantly share your app online.
+- Query and display data – Fetch live data from databases, or local files and display it in a UI.
+- Build interactive reports – Create dashboards where users can change filters and see results update.
+- Run locally or in the cloud – Start your app on your laptop or host it in Preswald Cloud for easy access.
+- Share with a link – No need to send scripts or install dependencies—just share a URL.
 
 ## Setting Up
 
@@ -35,7 +40,7 @@ Get started with Preswald in just a few steps. Set up your environment and start
   <Card
     title="Check out our Blog"
     icon="book"
-    href="https://blog.structuredlabs.com"
+    href="https://preswald.com/blog"
   >
     Read about how Preswald and the larger data ecosystem is evolving.
   </Card>

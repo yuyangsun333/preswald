@@ -4,116 +4,235 @@ icon: "layer-group"
 description: "The technical principles and design philosophy of Preswald."
 ---
 
-Preswald is built to simplify the process of creating dashboards and data apps by focusing on a few core principles: **declarative design**, **data as a first-class citizen**, and **efficient deployment**. These concepts are at the foundation of its architecture and influence every aspect of how it is used.
 
----
 
+
+Preswald is a framework for building interactive applications with Python. It has a FastAPI backend for managing UI state, workflows, and real-time updates, and a React frontend that dynamically renders components. It supports both server-based execution with FastAPI and browser-based execution with Pyodide. Apps can be deployed locally, in the cloud, or run entirely in the browser, making it easy to build and share interactive data apps.
+
+## **1. System Overview**
+
+Preswald is structured around three primary subsystems:
+
+1. **Backend Services** – FastAPI-based server that manages UI state, real-time execution, and workflow automation.
+2. **Frontend UI Framework** – React-based client that dynamically renders UI components and interacts with the backend.
+3. **Deployment & Execution** – A flexible deployment system that supports local, cloud, and browser-based execution.
+   
 ```mermaid
-graph TB
-    subgraph "Preswald Architecture"
-        Config[/"preswald.toml\nDeclarative Design"/]
-
-        subgraph "Data-Centric Core"
-            DuckDB["DuckDB\nIn-Memory Analytics"]
-            Data[(Raw Data\nCSV/Parquet)]
-        end
-
-        subgraph "Interactive Layer"
-            Components["Interactive Components"]
-            UI["User Interface"]
-        end
-
-        subgraph "Execution & Deployment"
-            Container["Container Runtime"]
-            Deploy["Deployment Targets\n(Local/Cloud)"]
-        end
+graph TD
+    subgraph Backend Services
+        A[FastAPI Server] -->|Manages UI State| B[WebSocket & API Layer]
+        B -->|Real-time Updates| C[Frontend UI]
+        A -->|Executes Workflows| D[Workflow Engine]
+        A -->|Handles Data| E[Data Handling]
+        A -->|Runs Python Scripts| F[Script Execution]
     end
 
-    %% Data Flow
-    Data -->|Direct Integration| DuckDB
-    Config -->|Defines| Components
-    Config -->|Configures| DuckDB
-    DuckDB -->|Powers| Components
-    Components -->|Renders| UI
+    subgraph Frontend UI Framework
+        C[React Frontend] -->|Interacts via WebSockets| B
+        C -->|Dynamic UI Rendering| G[UI Components]
+        C -->|Processes Data| H[Data Processing]
+    end
 
-    %% Deployment Flow
-    Config -->|Packages Into| Container
-    Container -->|Deploys To| Deploy
-
-    %% Styling
-    classDef core fill:#e1f5fe,stroke:#01579b
-    classDef data fill:#e8f5e9,stroke:#2e7d32
-    classDef ui fill:#fff3e0,stroke:#ef6c00
-    classDef deploy fill:#f3e5f5,stroke:#7b1fa2
-
-    class Config core
-    class DuckDB,Data data
-    class Components,UI ui
-    class Container,Deploy deploy
+    subgraph Deployment & Execution
+        I[CLI] -->|Deploys to| J[Cloud / Local / Browser]
+        J -->|Manages Execution Mode| A & C
+    end
 ```
 
-### 1️⃣ **Declarative Design**
+## **2. Core Components and Interactions**
 
-Preswald is built on the idea that describing what an application should do is more efficient than specifying how to do it. A single configuration file, `preswald.toml`, defines the application's behavior, presentation, and data connections.
+### **2.1 Backend Services**
 
-- **Clear Structure**: The configuration separates logic from setup, making it predictable and easy to follow.
-- **Portability**: Apps can be reproduced or shared with minimal effort.
-- **Focus on Logic**: Developers can spend time on what the app should do, not on repetitive setup.
+The backend is built on **FastAPI** and is responsible for managing application state, handling real-time communication, executing workflows, and serving UI components to the frontend. It consists of several key modules:
 
----
+#### **Main Server (`main.py`)**
+- Initializes a **FastAPI app** with CORS and WebSocket support.
+- Serves the frontend UI.
+- Manages **WebSocket connections** for real-time updates.
+- Injects **dynamic branding** into the frontend.
+- Runs on **port 8501** using `uvicorn`.
 
-### 2️⃣ **Data-Centric Architecture**
+#### **WebSocket & API Layer (`server_service.py`)**
+- Establishes **bi-directional communication** between the frontend and backend.
+- Receives UI state updates from clients.
+- Sends real-time UI changes and execution results.
+- Manages multiple **concurrent WebSocket sessions**.
 
-Preswald treats data as the central element of its architecture. It integrates directly with **DuckDB**, a columnar in-memory database, enabling efficient analytics without requiring a heavyweight backend.
+#### **Workflow Execution Engine (`workflow.py`)**
+- Defines **dependency-driven workflows** using task-based execution (`Atom`).
+- Manages **caching, retries, and task failures**.
+- Provides **execution tracking and visualization**.
+- Executes **data transformation and computational pipelines**.
 
-- **Direct Integration**: Preswald works natively with structured data formats like CSV and Parquet, reducing the need for intermediate steps.
-- **In-Memory Analytics**: DuckDB processes data directly in memory, optimizing for analytical workloads and query performance.
-- **Dynamic Data Interactions**: Applications interact with live data, enabling dynamic visualizations and parameter-driven workflows without additional complexity.
+#### **Data Handling (`data.py`)**
+- Connects to **external data sources** (SQL, NoSQL, in-memory storage).
+- Runs **SQL queries** and retrieves results as **Pandas DataFrames**.
+- Integrates with the **workflow engine** for structured data processing.
 
----
+#### **Script Execution (`runner.py`)**
+- Runs Python scripts dynamically within the backend.
+- Captures **standard output** and sends results to the UI.
+- Ensures **efficient script execution with state persistence**.
+- Prevents unnecessary re-execution using **debouncing**.
 
-### 3️⃣ **Interactive Components as Building Blocks**
+#### **Service Loader (`service.py`)**
+- Dynamically determines whether to use **server-based** (FastAPI) or **browser-based** (Pyodide) execution.
+- Provides a **unified API** for managing UI state, workflows, and script execution.
 
-Preswald provides a library of interactive components that operate as composable building blocks. These components allow developers to create dynamic, user-driven applications while remaining focused on their data logic. Key technical principles include:
+#### **Telemetry (`telemetry.py`)**
+- Collects **usage analytics** on executed commands and data sources.
+- Allows users to **opt-out** of telemetry.
+- Sends **aggregated performance insights** to cloud services.
 
-- **State-Driven Interaction**: Components like `slider()` and `selectbox()` allow users to interact with the data pipeline by directly modifying parameters or filters.
-- **Declarative Behavior**: Each component is defined with a simple function, abstracting away the implementation details of the underlying UI or state management.
-- **Integration with Data**: Components are designed to tightly couple with data processing logic, enabling a seamless feedback loop between user input and application output.
-
----
-
-### 4️⃣ **Efficiency and Lightweight Execution**
-
-Preswald's execution model prioritizes efficiency by leveraging lightweight, in-process execution and local-first design principles. Key aspects include:
-
-- **Minimized Resource Footprint**: Applications run locally or in-memory using DuckDB, reducing the need for additional infrastructure during development.
-- **Optimized for Analytics**: Queries and transformations are executed within the same process, reducing latency and overhead.
-- **Local-First Workflow**: Development occurs in an environment that mirrors production behavior, ensuring consistency between testing and deployment.
-
----
-
-### 5️⃣ **Pragmatic Deployment Model**
-
-Preswald is built around the idea that deploying an application should be straightforward and adaptable to different environments. The deployment process is designed to prioritize control and transparency:
-
-- **Explicit Targets**: Applications can be deployed locally for testing or to cloud environments such as Google Cloud Run, without requiring complex orchestration tools.
-- **Container-Based Isolation**: Every application is packaged as a container, ensuring consistency across environments.
-- **Developer Control**: Deployment involves explicit steps and decisions, ensuring that engineers retain full visibility into the process.
-
----
-
-### 6️⃣ **Minimalism and Composability**
-
-Preswald is intentionally minimal in scope. It provides only the tools necessary to define, build, and deploy data applications, leaving room for integration with other systems or libraries. This philosophy is reflected in:
-
-- **Focused Features**: Preswald avoids unnecessary features or abstractions, reducing cognitive load and increasing reliability.
-- **Composability**: Applications and workflows can be composed from small, independent pieces, making it easier to build modular systems.
-- **Transparent Design**: The architecture is simple and explicit, making it easy to understand and debug.
+```mermaid
+graph TD
+    A[FastAPI Server] -->|Handles UI State| B[WebSocket & API Layer]
+    A -->|Runs Workflows| C[Workflow Engine]
+    A -->|Manages Data| D[Data Handling]
+    A -->|Executes Python Code| E[Script Execution]
+    A -->|Determines Execution Mode| F[Service Loader]
+    A -->|Collects Metrics| G[Telemetry]
+```
 
 ---
 
-### Philosophy: Tools That Stay Out of the Way
+### **2.2 Frontend UI Framework**
 
-Preswald is designed for engineers who value simplicity, performance, and control. It avoids imposing heavy-handed frameworks or opinions, instead focusing on providing the tools needed to turn raw data into actionable insights. By adhering to principles of declarative design, efficient execution, and composability, Preswald reflects a core belief:
+The frontend is a **React-based** application that renders UI components dynamically and communicates with the backend through **WebSockets and REST APIs**. It is built using **Vite, Tailwind CSS, and ShadCN**.
 
-**Good tools make complexity manageable without obscuring it.**
+#### **Frontend Core (`App.jsx`)**
+- Manages the **WebSocket connection** with the backend.
+- Receives **UI component updates** and re-renders them dynamically.
+- Handles **connection status, errors, and branding updates**.
+
+#### **WebSocket Communication Layer (`websocket.js`)**
+- Establishes a **real-time connection** to the backend.
+- Synchronizes **component state between frontend and backend**.
+- Implements **automatic reconnection** if the connection drops.
+- Uses **PostMessage API** for browser-based execution.
+
+#### **Dynamic UI Rendering (`DynamicComponents.jsx`)**
+- Maps **backend-defined UI components** to React components.
+- Supports interactive elements such as **buttons, sliders, tables, and charts**.
+- Implements **memoization** to prevent unnecessary re-renders.
+
+#### **Data Processing (`dataprocessing.js`)**
+- Handles **large dataset visualization** by applying **downsampling and compression**.
+- Uses **LTTB (Largest-Triangle-Three-Buckets) algorithm** for time-series data.
+- Ensures **efficient data transmission** between frontend and backend.
+
+#### **Layout and Theming (`Layout.jsx`)**
+- Manages **UI layout, navigation, and branding**.
+- Loads **dynamic branding assets** from the backend.
+- Provides a **responsive user interface**.
+
+#### **UI Components (`widgets/`)**
+- Contains reusable UI component definitions.
+- Handles **user interactions and state updates**.
+
+```mermaid
+graph TD
+    A[React Frontend] -->|Establishes Connection| B[WebSocket Communication Layer]
+    A -->|Dynamically Renders UI| C[Dynamic UI Components]
+    A -->|Processes Data| D[Data Processing]
+    A -->|Handles Layout & Theming| E[Layout Manager]
+    A -->|Manages UI Widgets| F[UI Components]
+```
+
+---
+
+### **2.3 Deployment & Execution**
+
+Preswald supports **local, cloud, and browser-based execution** through a modular deployment system.
+
+#### **Command-Line Interface (`cli.py`)**
+- Provides CLI commands for **initialization, execution, and deployment**.
+- Handles **project creation, local server startup, and structured deployments**.
+
+#### **Deployment System (`deploy.py`)**
+- Automates **local (Docker), Google Cloud Run, and Structured Cloud** deployments.
+- Manages **container builds, service registration, and cleanup**.
+- Supports **incremental deployments** with minimal downtime.
+
+#### **Browser-Based Execution (`virtual_service.py`)**
+- Runs Preswald **entirely in the browser using Pyodide**.
+- Simulates **WebSocket communication** through **PostMessage API**.
+- Executes scripts dynamically within a **sandboxed Python runtime**.
+
+#### **Service Initialization (`entrypoint.py`)**
+- Bootstraps **Preswald in the browser**.
+- Exposes **Python functions to JavaScript**.
+- Manages **UI state without a backend**.
+
+```mermaid
+graph TD
+    A4["Command Line Interface (CLI)"] --> B4["Deployment System"]
+    B4 --> C4["Docker / Cloud / Browser"]
+    C4 --> D4["FastAPI Backend"]
+    C4 --> E4["React Frontend"]
+    B4 --> F4["Supports Incremental Deployments"]
+```
+---
+
+## **3. System Interaction Flow**
+
+### **3.1 Application Startup**
+1. The **backend initializes** a FastAPI server and loads configuration.
+2. The **frontend connects** to the backend via WebSockets.
+3. Preswald **loads UI components dynamically** based on the backend state.
+4. The **UI is rendered** and becomes interactive.
+
+### **3.2 User Interaction**
+1. A user **interacts with a UI component** (e.g., slider, button).
+2. The **frontend sends an event** to the backend through WebSockets.
+3. The **backend processes the event**, updates the UI state, and runs workflows if needed.
+4. The **new UI state is sent back** to the frontend and updated in real-time.
+
+### **3.3 Workflow Execution**
+1. A **workflow is triggered** based on user input or scheduled execution.
+2. The **workflow engine resolves dependencies** and executes tasks.
+3. The **output is processed** and stored in the **data handling layer**.
+4. The **UI updates dynamically** based on workflow results.
+
+### **3.4 Deployment**
+1. A user runs `preswald deploy` from the CLI.
+2. The **deployment system packages** the application.
+3. The package is **deployed to a target environment** (Docker, GCP, or Structured Cloud).
+4. The **app is started in the new environment**, and users can access it.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant WorkflowEngine
+    participant DataLayer
+
+    User->>Frontend: Interacts with UI (e.g., Click)
+    Frontend->>Backend: Sends event via WebSocket
+    Backend->>WorkflowEngine: Triggers Workflow
+    WorkflowEngine->>DataLayer: Fetches Data
+    DataLayer-->>WorkflowEngine: Returns Processed Data
+    WorkflowEngine-->>Backend: Sends Execution Results
+    Backend-->>Frontend: Updates UI State
+    Frontend-->>User: Renders Updated UI
+```
+---
+
+## **4. Execution Modes**
+
+Preswald can operate in different execution modes:
+
+1. **Server Mode (FastAPI)**
+   - Runs in a **containerized or cloud environment**.
+   - Uses **FastAPI for API serving and WebSockets for real-time updates**.
+   - Suitable for **scalable, multi-user applications**.
+
+2. **Browser Mode (Pyodide)**
+   - Runs **entirely in the browser** without a backend.
+   - Uses **Pyodide to execute Python scripts in JavaScript**.
+   - Suitable for **lightweight, client-side applications**.
+
+---
+
+Preswald provides a **modular and scalable system architecture** for building interactive Python applications. It integrates a **FastAPI backend, a React-based frontend, a real-time WebSocket communication layer, a workflow execution engine, and a flexible deployment system**.

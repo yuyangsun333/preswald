@@ -17,6 +17,8 @@ The following is the default structure of `preswald.toml` created during initial
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
+slug = "preswald-project"
+entrypoint = "hello.py"
 
 [branding]
 name = "Preswald Project"
@@ -24,9 +26,9 @@ logo = "images/logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
-[data.csv]
+[data.sample_csv]
 type = "csv"
-path = "data/example.csv"
+path = "data/sample.csv"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -66,11 +68,11 @@ You can use a local or remote CSV file as a data source by defining it in `presw
 #### Example CSV Connections:
 
 ```toml
-[data.csv]
+[data.customers_csv]
 type = "csv"
 path = "data/customers.csv"
 
-[data.csv]
+[data.sample_csv]
 type = "csv"
 path = "https://storage.googleapis.com/test/sample_data.csv"
 ```

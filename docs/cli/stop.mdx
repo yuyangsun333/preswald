@@ -10,11 +10,6 @@ The `preswald stop` command stops an already deployed app.
 
 Note: `preswald deploy` creates a `.env.structured` in the current directory for Structured Cloud deployments. This is used under the hood to stop Structured deployments.
 
-## Arguments
-
-- **`file_name` (str):**  
-  The path to the Python script that contains your application code. This is the script of which app was deployed.
-
 ## Options
 
 - **`--target`**: Specifies the deployment target. Options include:
@@ -26,5 +21,5 @@ Note: `preswald deploy` creates a `.env.structured` in the current directory for
 ## Example Usage
 
 ```bash
-preswald stop --target structured hello.py
+preswald stop --target structured
 ```

@@ -53,7 +53,7 @@ text("# Welcome to Preswald")
 Launch your app locally with this command:
 
 ```bash
-preswald run hello.py
+preswald run
 ```
 
 Open your browser and navigate to **[http://localhost:8501](http://localhost:8501)**. Your app will be live, ready for you to explore and iterate on.
@@ -62,24 +62,13 @@ Open your browser and navigate to **[http://localhost:8501](http://localhost:850
 
   <Step title="Deploy Your App">
 
-When you're ready to deploy your app, Preswald gives you flexibility:
-
-#### Deploy Locally
-
-If you just want to test your container locally:
+When you're ready to deploy your app, run this:
 
 ```bash
-preswald deploy --target local hello.py
+preswald deploy --target structured
 ```
-
-Or simply:
-
-```bash
-preswald deploy hello.py
-```
-
-This performs a local "dry run" by building the container locally.
-
 </Step>
+
+You will be prompted to pass in your GitHub username and Preswald API key. Get the preswald API key from our [cloud console](https://app.preswald.com/). Click on Organization name > Manage > API Keys.   
 
 </Steps>

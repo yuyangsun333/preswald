@@ -4,14 +4,11 @@ icon: "code"
 description: "Launch a local development server for your data app."
 ---
 
-# `preswald run <file_name>`
+# `preswald run`
 
-The `preswald run` command launches a local development server for your application, enabling you to test and interact with your app in a browser.
+The `preswald run` command launches a local development server for your application, enabling you to test and interact with your app in a browser. 
 
-## Arguments
-
-- **`file_name` (str):**  
-  The path to the Python script that contains your application code. This is the script the development server will execute.
+The command will run the script defined in the entrypoint in the `preswald.toml`.
 
 ## Options
 
@@ -30,13 +27,13 @@ The `preswald run` command launches a local development server for your applicat
 To launch the development server for your app:
 
 ```bash
-preswald run hello.py
+preswald run
 ```
 
 or
 
 ```bash
-preswald run hello.py --port 8504 --log-level DEBUG --disable-new-tab
+preswald run --port 8504 --log-level DEBUG --disable-new-tab
 ```
 
 After running the command, your application will be available locally at:
