@@ -1,0 +1,198 @@
+/* Reset default margin and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Ensure full height layout with flexbox */
+html,
+body {
+  height: 100%;
+  font-family: "Georgia", serif;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: #f9f9f9;
+  padding-top: 0px; /* Added padding to the top of the page */
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* Main container */
+.container {
+  padding-top: 40px;
+  max-width: 700px;
+  flex: 1; /* Ensures footer is pushed to the bottom */
+}
+
+/* Logo */
+.logo {
+  width: 130px;
+  height: auto;
+  max-width: 100%; /* Ensures it resizes on small screens */
+  display: block; /* Prevents inline spacing issues */
+  margin: 24px auto;
+}
+
+/* Quote Styling */
+.quote {
+  font-style: italic;
+  color: #666;
+  border-left: 4px solid #999;
+  padding-left: 12px;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+/* Divider */
+.divider {
+  font-size: 18px;
+  margin: 16px 0;
+}
+
+/* Paragraphs */
+p {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Links */
+.link {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.link:hover {
+  color: #0056b3;
+}
+
+/* Team Info */
+.team {
+  font-size: 16px;
+  color: #444;
+}
+
+/* Footer */
+.footer {
+  width: 100%;
+  text-align: center;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column; /* Keeps spacing consistent */
+  align-items: center;
+  justify-content: center;
+  gap: 20px; /* Added more space between sections */
+  margin-top: auto; /* Ensures footer is always at the bottom */
+}
+
+/* Footer Links */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap; /* Ensures links don't stack unless necessary */
+  justify-content: center;
+  gap: 20px; /* Added more space between footer links */
+  padding-bottom: 10px; /* Adds spacing before social icons */
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: #666;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #222;
+}
+
+/* Social Media Icons */
+.footer-social {
+  display: flex;
+  flex-direction: row; /* Forces social icons to stay in a row */
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* Increased spacing between social icons */
+  padding-top: 10px; /* Adds spacing above social icons */
+}
+
+.footer-social a img {
+  width: 24px;
+  height: 24px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.footer-social a img:hover {
+  opacity: 1;
+}
+
+.footer-social i {
+  font-size: 24px;
+  color: #666;
+  transition: color 0.3s;
+  margin: 0 10px;
+}
+
+.footer-social i:hover {
+  color: #222;
+}
+
+/* Mobile Fixes */
+@media (max-width: 768px) {
+  .container {
+    max-width: 90%;
+    padding: 15px;
+  }
+
+  .logo {
+    width: 80px; /* Smaller size for better fit */
+  }
+
+  .quote {
+    font-size: 16px;
+  }
+
+  p {
+    font-size: 16px;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+  }
+
+  .footer-social a img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Small Screens (Below 480px) */
+@media (max-width: 480px) {
+  .footer-links {
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Allows scrolling instead of stacking */
+    justify-content: center;
+  }
+
+  .footer-social {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .logo {
+    width: 60px; /* Even smaller for extra-small screens */
+  }
+}
