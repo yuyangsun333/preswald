@@ -8,7 +8,7 @@ from setuptools import Command, find_packages, setup
 
 class BuildFrontendCommand(Command):
     description = "build frontend assets"
-    user_options = []
+    user_options = []  # noqa: RUF012
 
     def initialize_options(self):
         pass
@@ -140,7 +140,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.40",
+    version="0.1.41",
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
