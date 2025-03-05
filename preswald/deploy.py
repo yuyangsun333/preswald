@@ -7,7 +7,7 @@ import subprocess
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Optional
 
 import pkg_resources
 import requests
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 # @TODO: to inject this from a preswald cli cmdn
-STRUCTURED_CLOUD_SERVICE_URL = "http://deployer.preswald.com/"
+STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-880196552654.us-east1.run.app"
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -113,7 +113,7 @@ def setup_gcloud() -> None:
             print("\nConfiguring Docker authentication...")
             subprocess.run(["gcloud", "auth", "configure-docker"], check=True)
         except subprocess.CalledProcessError as e:
-            raise Exception(f"Authentication failed: {e!s}")
+            raise Exception(f"Authentication failed: {e!s}") from e
 
 
 def ensure_project_selected() -> str:
@@ -144,7 +144,7 @@ def ensure_project_selected() -> str:
         return project_id
 
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Failed to get or set project: {e!s}")
+        raise Exception(f"Failed to get or set project: {e!s}") from e
 
 
 def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501) -> str:
@@ -224,14 +224,17 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
             raise Exception(
                 "Google Cloud SDK not found. Please install from: "
                 "https://cloud.google.com/sdk/docs/install"
-            )
-        raise Exception(f"Cloud Run deployment failed: {e!s}")
+            ) from e
+        raise Exception(f"Cloud Run deployment failed: {e!s}") from e
     except Exception as e:
-        raise Exception(f"Deployment failed: {e!s}")
+        raise Exception(f"Deployment failed: {e!s}") from e
 
 
-def deploy_to_prod(
-    script_path: str, port: int = 8501, github_username: str = None, api_key: str = None
+def deploy_to_prod(  # noqa: C901
+    script_path: str,
+    port: int = 8501,
+    github_username: Optional[str] = None,
+    api_key: Optional[str] = None,
 ) -> Generator[dict, None, None]:
     """
     Deploy a Preswald app to production via Structured Cloud service.
@@ -259,7 +262,7 @@ def deploy_to_prod(
             "message": f"Failed to get project slug: {e!s}",
             "timestamp": datetime.now().isoformat(),
         }
-        raise Exception(f"Failed to get project slug: {e!s}")
+        raise Exception(f"Failed to get project slug: {e!s}") from e
 
     if not env_file.exists():
         # Use provided credentials or get from user input
@@ -344,7 +347,7 @@ def deploy_to_prod(
             "message": f"Deployment failed: {e!s}",
             "timestamp": datetime.now().isoformat(),
         }
-        raise Exception(f"Production deployment failed: {e!s}")
+        raise Exception(f"Production deployment failed: {e!s}") from e
 
 
 def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
@@ -435,20 +438,20 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
         return deploy_to_cloud_run(deploy_dir, container_name, port=port)
 
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Docker operation failed: {e!s}")
-    except FileNotFoundError:
+        raise Exception(f"Docker operation failed: {e!s}") from e
+    except FileNotFoundError as e:
         raise Exception(
             "Docker not found. Please install Docker Desktop from "
             "https://www.docker.com/products/docker-desktop"
-        )
+        ) from e
 
 
-def deploy(
+def deploy(  # noqa: C901
     script_path: str,
     target: str = "local",
     port: int = 8501,
-    github_username: str = None,
-    api_key: str = None,
+    github_username: Optional[str] = None,
+    api_key: Optional[str] = None,
 ) -> str | Generator[dict, None, None]:
     """
     Deploy a Preswald app.
@@ -543,17 +546,17 @@ def deploy(
             )
             return f"http://localhost:{port}"
         except subprocess.CalledProcessError as e:
-            raise Exception(f"Docker operation failed: {e!s}")
-        except FileNotFoundError:
+            raise Exception(f"Docker operation failed: {e!s}") from e
+        except FileNotFoundError as e:
             raise Exception(
                 "Docker not found. Please install Docker Desktop from "
                 "https://www.docker.com/products/docker-desktop"
-            )
+            ) from e
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 
 
-def stop(script_path: str = None) -> None:
+def stop(script_path: Optional[str] = None) -> None:
     """
     Stop a running Preswald deployment.
 
@@ -579,7 +582,7 @@ def stop(script_path: str = None) -> None:
         stop_existing_container(container_name)
 
     except Exception as e:
-        raise Exception(f"Failed to stop deployment: {e}")
+        raise Exception(f"Failed to stop deployment: {e}") from e
 
 
 def stop_structured_deployment(script_path: str) -> dict:
@@ -600,7 +603,7 @@ def stop_structured_deployment(script_path: str) -> dict:
     try:
         project_slug = get_project_slug(config_path)
     except Exception as e:
-        raise Exception(f"Failed to get project slug: {e!s}")
+        raise Exception(f"Failed to get project slug: {e!s}") from e
 
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
@@ -628,7 +631,7 @@ def stop_structured_deployment(script_path: str) -> dict:
         return response.json()
 
     except requests.RequestException as e:
-        raise Exception(f"Failed to stop production deployment: {e!s}")
+        raise Exception(f"Failed to stop production deployment: {e!s}") from e
 
 
 def get_structured_deployments(script_path: str) -> dict:
@@ -649,7 +652,7 @@ def get_structured_deployments(script_path: str) -> dict:
     try:
         project_slug = get_project_slug(config_path)
     except Exception as e:
-        raise Exception(f"Failed to get project slug: {e!s}")
+        raise Exception(f"Failed to get project slug: {e!s}") from e
 
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
@@ -677,14 +680,13 @@ def get_structured_deployments(script_path: str) -> dict:
         return response.json()
 
     except requests.RequestException as e:
-        raise Exception(f"Failed to fetch deployments: {e!s}")
+        raise Exception(f"Failed to fetch deployments: {e!s}") from e
 
 
-def cleanup_gcp_deployment(script_path: str):
+def cleanup_gcp_deployment(script_path: str):  # noqa: C901
     import json
     import subprocess
     from datetime import datetime
-    from pathlib import Path
 
     def log_status(status, message):
         return {
@@ -696,7 +698,7 @@ def cleanup_gcp_deployment(script_path: str):
     try:
         yield log_status("info", "Gathering deployment information...")
         script_path = os.path.abspath(script_path)
-        script_dir = Path(script_path).parent
+        # script_dir = Path(script_path).parent
         container_name = get_container_name(script_path)
 
         yield log_status("info", "Verifying Google Cloud SDK setup...")
@@ -770,9 +772,7 @@ def cleanup_gcp_deployment(script_path: str):
                     "info", f"No Cloud Run service found with name: {container_name}"
                 )
         except Exception as e:
-            yield log_status(
-                "error", f"Error while deleting Cloud Run service: {e!s}"
-            )
+            yield log_status("error", f"Error while deleting Cloud Run service: {e!s}")
 
         yield log_status("info", f"Cleaning up container images from GCR: {gcr_image}")
         try:
