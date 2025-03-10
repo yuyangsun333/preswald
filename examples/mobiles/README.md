@@ -25,4 +25,4 @@ It contains information about mobile phone models, their launch years, prices ac
 2. **Setup**
  - Configure your data connections in `preswald.toml`
  - Add sensitive information (passwords, API keys) to `secrets.toml`
- - Run your app with `preswald run hello.py` locally.
+ - Run your app with `preswald run` locally.
