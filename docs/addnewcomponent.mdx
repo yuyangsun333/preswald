@@ -103,41 +103,8 @@ case 'helloworld':
 Modify the example script at `examples/iris/hello.py`:
 
 ```python
-from preswald import connect, get_df, text, helloworldcomponent
-import fastplotlib as fpl
-import numpy as np
-import pandas as pd
-
-# Report Title
-text(
-    "# Iris Data Viz with Preswald \n"
-    "This report provides a visual analysis of the famous Iris dataset. "
-    "Each plot explores different characteristics of the iris flowers across three species: "
-    "Setosa, Versicolor, and Virginica."
-)
-
-# Load the CSV
-df = get_df("iris_csv")
-
-df.columns = ["sepal_length", "sepal_width", "petal_length", "petal_width", "variety"]
-
-species_colors = {
-    "Setosa": [1, 0, 0, 1],
-    "Versicolor": [0, 1, 0, 1],
-    "Virginica": [0, 0, 1, 1]
-}
-
-df["species_color"] = df["variety"].map(species_colors)
-colors = np.array(df["species_color"].tolist())
-
-figure = fpl.Figure()
-
-data = np.column_stack((df["petal_length"], df["petal_width"]))
-scatter = figure[0, 0].add_scatter(data=data, sizes=5, colors=colors)
-
+from preswald import  helloworldcomponent
 helloworldcomponent(label="hi")
-
-figure.show()
 ```
 
 Run the test:
