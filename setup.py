@@ -20,7 +20,7 @@ class BuildFrontendCommand(Command):
         try:
             self._build_frontend()
         except Exception as e:
-            print(f"Error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Error building frontend: {e!s}", file=sys.stderr)
             raise
 
     def _build_frontend(self):
