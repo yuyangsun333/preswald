@@ -1,8 +1,8 @@
 import io
 import json
-import re
 import logging
 import os
+import re
 import shutil
 import subprocess
 import zipfile
@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
-# @TODO: to inject this from a preswald cli cmdn
-STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-v2-ndjz2ws6la-ue.a.run.app"
+STRUCTURED_CLOUD_SERVICE_URL = "https://deployer.preswald.com"
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -35,12 +34,12 @@ def get_deploy_dir(script_path: str) -> Path:
     return deploy_dir
 
 
-def get_container_name(script_path: str) -> str: 
-    """Generate a consistent container name for a given script""" 
-    container_name = f"preswald-app-{Path(script_path).stem}" 
+def get_container_name(script_path: str) -> str:
+    """Generate a consistent container name for a given script"""
+    container_name = f"preswald-app-{Path(script_path).stem}"
     container_name = container_name.lower()
     container_name = re.sub(r"[^a-z0-9-]", "", container_name)
-    container_name = container_name.strip('-')
+    container_name = container_name.strip("-")
     return container_name
 
 

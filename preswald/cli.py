@@ -326,7 +326,8 @@ def stop(target):
         print(f"Current directory: {current_dir}")
         if target == "structured":
             try:
-                stop_structured_deployment(current_dir)
+                response_json = stop_structured_deployment(current_dir)
+                click.echo(response_json["message"])
                 click.echo(
                     click.style(
                         "✅ Production deployment stopped successfully.", fg="green"
@@ -358,7 +359,7 @@ def stop(target):
         else:
             stop_app(current_dir)
             click.echo("Deployment stopped successfully. 🛑 ")
-    except Exception as e:
+    except Exception:
         sys.exit(1)
 
 
