@@ -117,6 +117,7 @@ CORE_DEPENDENCIES = [
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
     "duckdb>=1.1.2; platform_system != 'Emscripten'",
+    "scipy>=1.15.2; platform_system != 'Emscripten'",
     # Other dependencies
     "httpx>=0.23.0,<1.0.0",
     "python-multipart>=0.0.5,<0.1.0",
@@ -126,7 +127,6 @@ CORE_DEPENDENCIES = [
     "Requests>=2.31.0",  # NOTE: maybe need to make this server only as well?
     "setuptools>=69.5.1",
     "tomli>=2.0.1",  # TODO: standardize alongside toml/tomllib
-    "scipy>=1.15.2"
 ]
 
 # Define additional dependencies for development
@@ -141,8 +141,8 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.41",
-    author="Structured",
+    version="0.1.42",
+    author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
     long_description=open("README.md", encoding="utf-8").read(),
