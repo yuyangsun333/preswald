@@ -175,3 +175,6 @@ notes.md
 .ruff_cache/
 
 .env.structured
+
+community_gallery/**/data
+community_gallery/**/pyproject.toml
