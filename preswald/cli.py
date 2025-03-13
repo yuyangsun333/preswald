@@ -2,9 +2,9 @@ import os
 import sys
 import tempfile
 import webbrowser
+from importlib.resources import as_file, files
 
 import click
-import pkg_resources
 
 from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
 from preswald.deploy import deploy as deploy_app
@@ -55,12 +55,12 @@ def init(name):
         # Copy default branding files from package resources
         import shutil
 
-        default_static_dir = pkg_resources.resource_filename("preswald", "static")
-        default_favicon = os.path.join(default_static_dir, "favicon.ico")
-        default_logo = os.path.join(default_static_dir, "logo.png")
+        # Using a context manager to get the actual file path
+        with as_file(files("preswald").joinpath("static/favicon.ico")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "favicon.ico"))
 
-        shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
-        shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
+        with as_file(files("preswald").joinpath("static/logo.png")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "logo.png"))
 
         file_templates = {
             "hello.py": "hello.py",

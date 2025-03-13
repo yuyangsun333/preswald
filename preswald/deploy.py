@@ -7,10 +7,10 @@ import shutil
 import subprocess
 import zipfile
 from datetime import datetime
+from importlib.metadata import version
 from pathlib import Path
 from typing import Generator, Optional
 
-import pkg_resources
 import requests
 import toml
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 STRUCTURED_CLOUD_SERVICE_URL = "https://deployer.preswald.com"
+
 
 def get_deploy_dir(script_path: str) -> Path:
     """
@@ -37,7 +38,7 @@ def get_deploy_dir(script_path: str) -> Path:
 def get_container_name(script_path: str) -> str:
     """Generate a consistent container name for a given script"""
     script_dir = Path(script_path).parent
-    with open(script_dir / "preswald.toml", "r") as f:
+    with open(script_dir / "preswald.toml") as f:
         preswald_toml = f.read()
     config = toml.loads(preswald_toml)
     container_name = f"preswald-app-{config['project']['slug']}"
@@ -382,14 +383,14 @@ def authenticate_gcr() -> None:
         raise Exception(f"Failed to authenticate with GCR: {e!s}") from e
 
 
-def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
+def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
     """
     Deploy a Preswald app to Google Cloud Run using a simplified Docker approach.
-    
+
     Args:
         script_path: Path to the Preswald application script
         port: Port number for the deployment
-        
+
     Returns:
         str: The URL where the app is deployed
     """
@@ -416,12 +417,12 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
         if not check_gcloud_auth_for_gcr():
             authenticate_gcr()
 
-        with open(script_dir / "preswald.toml", "r") as f:
+        with open(script_dir / "preswald.toml") as f:
             preswald_toml = f.read()
         config = toml.loads(preswald_toml)
-        original_port = config['project']['port']
-        config['project']['port'] = 8080
-        
+        original_port = config["project"]["port"]
+        config["project"]["port"] = 8080
+
         with open(script_dir / "preswald.toml", "w") as f:
             toml.dump(config, f)
 
@@ -432,7 +433,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
             elif item.is_dir():
                 shutil.rmtree(item)
 
-        dockerfile_content = f"""FROM structuredlabs/preswald-base:latest
+        dockerfile_content = """FROM structuredlabs/preswald-base:latest
 COPY . /app/project
 """
         with open(deploy_dir / "Dockerfile", "w") as f:
@@ -470,17 +471,23 @@ COPY . /app/project
 
         print("\nPushing image to Google Container Registry...")
         subprocess.run(
-            ["docker", "tag", container_name, gcr_image], check=True, cwd=str(deploy_dir)
+            ["docker", "tag", container_name, gcr_image],
+            check=True,
+            cwd=str(deploy_dir),
         )
-        
+
         try:
-            subprocess.run(["docker", "push", gcr_image], check=True, cwd=str(deploy_dir))
+            subprocess.run(
+                ["docker", "push", gcr_image], check=True, cwd=str(deploy_dir)
+            )
         except subprocess.CalledProcessError as e:
             if "unauthorized" in str(e) or "authentication required" in str(e):
                 print("\nAuthentication failed. Trying to reauthenticate...")
                 authenticate_gcr()
                 # Try pushing again after reauthentication
-                subprocess.run(["docker", "push", gcr_image], check=True, cwd=str(deploy_dir))
+                subprocess.run(
+                    ["docker", "push", gcr_image], check=True, cwd=str(deploy_dir)
+                )
             else:
                 raise
 
@@ -497,7 +504,7 @@ COPY . /app/project
                 "managed",
                 "--region",
                 region,
-                "--allow-unauthenticated"
+                "--allow-unauthenticated",
             ],
             check=True,
             text=True,
@@ -522,7 +529,7 @@ COPY . /app/project
             capture_output=True,
         )
 
-        config['project']['port'] = original_port
+        config["project"]["port"] = original_port
         with open(script_dir / "preswald.toml", "w") as f:
             toml.dump(config, f)
 
@@ -553,9 +560,9 @@ COPY . /app/project
         raise Exception(f"Deployment failed: {e!s}") from e
     finally:
         try:
-            with open(script_dir / "preswald.toml", "r") as f:
+            with open(script_dir / "preswald.toml") as f:
                 config = toml.loads(f.read())
-            config['project']['port'] = original_port
+            config["project"]["port"] = original_port
             with open(script_dir / "preswald.toml", "w") as f:
                 toml.dump(config, f)
         except Exception:
@@ -593,7 +600,8 @@ def deploy(  # noqa: C901
         container_name = get_container_name(script_path)
         deploy_dir = get_deploy_dir(script_path)
         # Get preswald version for exact version matching
-        preswald_version = pkg_resources.get_distribution("preswald").version
+        preswald_version = version("preswald")
+
         # First, clear out the old deployment directory contents while preserving the directory itself
         for item in deploy_dir.iterdir():
             if item.is_file():
@@ -808,14 +816,14 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
     try:
         yield log_status("info", "Gathering deployment information...")
         script_dir = Path(script_dir)
-        
+
         preswald_toml = script_dir / "preswald.toml"
         if not preswald_toml.exists():
             raise FileNotFoundError(f"preswald.toml not found in {script_dir}")
 
         with open(preswald_toml) as f:
             config = toml.loads(f.read())
-            slug = config['project']['slug']
+            slug = config["project"]["slug"]
             container_name = f"preswald-app-{slug}"
             container_name = container_name.lower()
             container_name = re.sub(r"[^a-z0-9-]", "", container_name)
@@ -823,11 +831,16 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
 
         yield log_status("info", "Verifying Google Cloud SDK setup...")
         if not check_gcloud_installation():
-            yield log_status("error", "Google Cloud SDK not found. Please install from: https://cloud.google.com/sdk/docs/install")
+            yield log_status(
+                "error",
+                "Google Cloud SDK not found. Please install from: https://cloud.google.com/sdk/docs/install",
+            )
             return
 
         if not check_gcloud_auth():
-            yield log_status("info", "Authentication required. Opening browser for login...")
+            yield log_status(
+                "info", "Authentication required. Opening browser for login..."
+            )
             try:
                 subprocess.run(["gcloud", "auth", "login"], check=True)
             except subprocess.CalledProcessError as e:
@@ -847,25 +860,30 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
         # Delete Cloud Run service
         yield log_status("info", f"Checking Cloud Run service: {container_name}")
         try:
-            service_exists = subprocess.run(
-                [
-                    "gcloud",
-                    "run",
-                    "services",
-                    "describe",
-                    container_name,
-                    "--platform",
-                    "managed",
-                    "--region",
-                    region,
-                    "--format=json",
-                ],
-                capture_output=True,
-                text=True,
-            ).returncode == 0
+            service_exists = (
+                subprocess.run(
+                    [
+                        "gcloud",
+                        "run",
+                        "services",
+                        "describe",
+                        container_name,
+                        "--platform",
+                        "managed",
+                        "--region",
+                        region,
+                        "--format=json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                ).returncode
+                == 0
+            )
 
             if service_exists:
-                yield log_status("info", f"Deleting Cloud Run service: {container_name}")
+                yield log_status(
+                    "info", f"Deleting Cloud Run service: {container_name}"
+                )
                 delete_result = subprocess.run(
                     [
                         "gcloud",
@@ -884,30 +902,41 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
                 )
 
                 if delete_result.returncode == 0:
-                    yield log_status("success", f"Deleted Cloud Run service: {container_name}")
+                    yield log_status(
+                        "success", f"Deleted Cloud Run service: {container_name}"
+                    )
                 else:
-                    yield log_status("error", f"Failed to delete service: {delete_result.stderr}")
+                    yield log_status(
+                        "error", f"Failed to delete service: {delete_result.stderr}"
+                    )
             else:
-                yield log_status("info", f"No Cloud Run service found: {container_name}")
+                yield log_status(
+                    "info", f"No Cloud Run service found: {container_name}"
+                )
 
         except Exception as e:
-            yield log_status("error", f"Error checking/deleting Cloud Run service: {e!s}")
+            yield log_status(
+                "error", f"Error checking/deleting Cloud Run service: {e!s}"
+            )
 
         # Clean up container images
         yield log_status("info", "Checking for container images...")
         try:
-            images_exist = subprocess.run(
-                [
-                    "gcloud",
-                    "container",
-                    "images",
-                    "describe",
-                    gcr_image,
-                    "--format=json",
-                ],
-                capture_output=True,
-                text=True,
-            ).returncode == 0
+            images_exist = (
+                subprocess.run(
+                    [
+                        "gcloud",
+                        "container",
+                        "images",
+                        "describe",
+                        gcr_image,
+                        "--format=json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                ).returncode
+                == 0
+            )
 
             if images_exist:
                 yield log_status("info", f"Deleting container image: {gcr_image}")
@@ -928,7 +957,9 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
                 if delete_result.returncode == 0:
                     yield log_status("success", f"Deleted container image: {gcr_image}")
                 else:
-                    yield log_status("error", f"Failed to delete image: {delete_result.stderr}")
+                    yield log_status(
+                        "error", f"Failed to delete image: {delete_result.stderr}"
+                    )
             else:
                 yield log_status("info", "No container images found")
 
@@ -952,7 +983,9 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
             )
             yield log_status("success", "Cleaned up local Docker images")
         except Exception as e:
-            yield log_status("info", f"Note: Could not clean local Docker images: {e!s}")
+            yield log_status(
+                "info", f"Note: Could not clean local Docker images: {e!s}"
+            )
 
         yield log_status("success", "GCP cleanup completed successfully!")
 
