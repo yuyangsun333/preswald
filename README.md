@@ -219,3 +219,20 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md).
 ## **📄 License**
 
 Preswald is licensed under the [Apache 2.0 License](LICENSE).
+
+## ✨ Contributors
+
+Thanks to these amazing people:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/username"><img src="https://avatars.githubusercontent.com/username?v=4" width="100px;" alt=""/><br /><sub><b>Username</b></sub></a><br /><a href="#" title="Code">💻</a> <a href="#" title="Docs">📖</a></td>
+  </tr>
+</table>
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
