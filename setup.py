@@ -111,11 +111,11 @@ CORE_DEPENDENCIES = [
     "toml==0.10.2",
     "plotly==5.24.1",
     "Markdown>=3.4.0",
+    "matplotlib>=3.8.4",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
-    "matplotlib~=3.10.1",
     # Native code dependencies
     "duckdb>=1.1.2; platform_system != 'Emscripten'",
     "scipy>=1.15.2; platform_system != 'Emscripten'",
@@ -142,7 +142,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.45",
+    version="0.1.46",
     author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
