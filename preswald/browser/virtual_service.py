@@ -193,7 +193,6 @@ class VirtualPreswaldService:
 
         def handle_message_from_js(client_id, message_type, data):
             try:
-                from js import Object  # type: ignore
                 import json
 
                 # Convert JsProxy to real Python dict using JSON workaround
@@ -212,9 +211,9 @@ class VirtualPreswaldService:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"Handling JS message from {client_id}: {message}")
 
-                asyncio.create_task(self.handle_client_message(client_id, message))
+                asyncio.create_task(self.handle_client_message(client_id, message))   # noqa: RUF006
                 return True
-            except Exception as e:
+            except Exception:
                 import traceback
                 logger.error("Error in handle_message_from_js: %s", traceback.format_exc())
                 return False
@@ -323,7 +322,7 @@ class VirtualPreswaldService:
         }
 
         if not changed_states:
-            logger.debug(f"[STATE] No actual state changes detected. Skipping rerun.")
+            logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
             return
 
         # Update only changed states
