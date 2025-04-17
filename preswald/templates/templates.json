@@ -352,15 +352,6 @@
         "type": "Preswald"
       },
       {
-        "id": "event-planning",
-        "title": "Luma Event Planning",
-        "author": "Structured Labs",
-        "description": "Plan and manage events with timeline tracking, guest management, and budget control.",
-        "preview": "event-planning",
-        "tags": ["Operations", "Planning"],
-        "type": "Preswald"
-      },
-      {
         "id": "api-usage",
         "title": "API Usage Tracker",
         "author": "Structured Labs",
@@ -745,6 +736,15 @@
         "description": "Track and prioritize feature requests with voting and impact analysis.",
         "preview": "feature-requests",
         "tags": ["Product", "Analytics", "Planning"],
+        "type": "Preswald"
+      },
+      {
+        "id": "team-retrospective",
+        "title": "Team Retrospective Dashboard",
+        "author": "Structured Labs",
+        "description": "Facilitate team retrospectives with action item tracking, sentiment analysis, and improvement metrics.",
+        "preview": "team-retrospective",
+        "tags": ["Engineering", "Operations", "Analytics"],
         "type": "Preswald"
       },
       {
