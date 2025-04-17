@@ -9,6 +9,7 @@ from importlib.resources import files
 from typing import Optional
 from functools import wraps
 from preswald.engine.service import PreswaldService
+from preswald.interfaces.component_return import ComponentReturn
 
 import toml
 
@@ -166,22 +167,6 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
     return f"{prefix}-{hashed}"
 
 
-class ComponentReturn:
-    """
-    Wrapper for component return values that separates the visible return
-    value from the internal component metadata (e.g. for render tracking).
-    """
-
-    def __init__(self, value, component):
-        self.value = value
-        self._preswald_component = component
-
-    def __str__(self): return str(self.value)
-    def __float__(self): return float(self.value)
-    def __bool__(self): return bool(self.value)
-    def __repr__(self): return repr(self.value)
-
-
 def with_render_tracking(component_type: str):
     """
     Decorator for Preswald components that automates:
@@ -223,7 +208,7 @@ def with_render_tracking(component_type: str):
                     return result
                 return_value = result.value if isinstance(result, ComponentReturn) else result
 
-            with service.active_atom(component_id):
+            with service.active_atom(service._workflow._current_atom):
                 if service.should_render(component_id, component):
                     logger.debug(f"[{component_type}] Created component: {component}")
                     service.append_component(component)

@@ -14,6 +14,7 @@ from preswald.engine.utils import (
     optimize_plotly_data,
 )
 from preswald.interfaces.workflow import Workflow, Atom
+from preswald.interfaces.component_return import ComponentReturn
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 
@@ -42,7 +43,7 @@ class BasePreswaldService:
         self._render_buffer = RenderBuffer()
 
         # DAG workflow engine
-        self._workflow = Workflow()
+        self._workflow = Workflow(service=self)
         self._current_atom: Optional[str] = None
 
         # Initialize session tracking
@@ -52,9 +53,9 @@ class BasePreswaldService:
         self._layout_manager = LayoutManager()
 
     @contextmanager
-    def active_atom(self, component_id: str):
+    def active_atom(self, atom_name: str):
         previous_atom = self._current_atom
-        self._current_atom = component_id
+        self._current_atom = atom_name
         try:
             yield
         finally:
@@ -88,54 +89,87 @@ class BasePreswaldService:
         self._script_path = path
         self._initialize_data_manager(path)
 
+    def _ensure_dummy_atom(self, atom_name: str):
+        """Helper to ensure a dummy atom is registered if it doesn’t already exist and isn’t the current atom."""
+        current_atom = self._workflow._current_atom
+        if atom_name == current_atom:
+            #logger.debug(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
+            logger.info(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
+            return
+
+        if atom_name not in self._workflow.atoms:
+            logger.warning(f"[DAG] (fallback) Registering dummy atom for '{atom_name}'")
+            dummy_func = lambda **kwargs: None
+            self._workflow.atoms[atom_name] = Atom(
+                name=atom_name,
+                func=dummy_func,
+                original_func=dummy_func,
+            )
+
     def append_component(self, component):
         """Add a component to the layout manager"""
         try:
-            if isinstance(component, dict):
-                logger.info(
-                    f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}"
-                )
-                # Clean any NaN values in the component
-                clean_start = time.time()
-                cleaned_component = clean_nan_values(component)
-                logger.debug(f"NaN cleanup took {time.time() - clean_start:.3f}s")
+            # Unwrap ComponentReturn if present
+            if hasattr(component, "_preswald_component"):
+                component = component._preswald_component
 
-                # Ensure component has current state
-                if "id" in cleaned_component:
-                    component_id = cleaned_component["id"]
-                    if component_id not in self._layout_manager.seen_ids:
-                        # Update component with current state if it exists
-                        if "value" in cleaned_component:
-                            current_state = self.get_component_state(component_id)
-                            if current_state is not None:
-                                cleaned_component["value"] = clean_nan_values(
-                                    current_state
-                                )
-                                if logger.isEnabledFor(logging.DEBUG):
-                                    logger.debug(
-                                        f"Updated component {component_id} with state: {current_state}"
-                                    )
-                        with self.active_atom(component_id):
-                            if component_id not in self._workflow.atoms:
-                                self._workflow.atoms[component_id] = Atom(name=component_id, func=lambda: None)
-                            self._layout_manager.add_component(cleaned_component)
+            # Early guard against invalid components
+            if not isinstance(component, dict):
+                logger.debug(f"[APPEND] Skipping non-dict component: {component}")
+                return
+
+            if "type" not in component or not isinstance(component["type"], str):
+                logger.debug(f"[APPEND] Skipping component with no valid type: {component}")
+                return
+
+            logger.info(f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}")
+
+            # Clean any NaN values in the component
+            clean_start = time.time()
+            cleaned_component = clean_nan_values(component)
+            logger.debug(f"NaN cleanup took {time.time() - clean_start:.3f}s")
+
+            if "id" in cleaned_component:
+                component_id = cleaned_component["id"]
+                logger.info(f"[TEST] append_component() called with id: {component_id}")
+
+                # Try to patch instead of re-adding if already exists
+                if not self._layout_manager.patch_component(cleaned_component):
+                    # Update value if we have previous state
+                    if "value" in cleaned_component:
+                        current_state = self.get_component_state(component_id)
+                        if current_state is not None:
+                            cleaned_component["value"] = clean_nan_values(current_state)
                             if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(f"Added component with state: {cleaned_component}")
-                else:
-                    # Components without IDs are added as-is
-                    self._layout_manager.add_component(cleaned_component)
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"Added component without ID: {cleaned_component}")
+                                logger.debug(f"Updated component {component_id} with state: {current_state}")
+
+                    with self.active_atom(self._workflow._current_atom):
+                        current_atom = self._workflow._current_atom
+                        logger.info(f"[DEBUG] Current atom before register: {current_atom}")
+
+                        # Register the producer relationship
+                        self._workflow.register_component_producer(component_id)
+
+                        # Avoid circular fallback: component shouldn't self-register
+                        producer = self._workflow.get_component_producer(component_id)
+                        if current_atom and component_id != current_atom and producer != current_atom:
+                            self._ensure_dummy_atom(component_id)
+
+                        # Store return value in workflow context (if present)
+                        if "value" in cleaned_component:
+                            producer = self._workflow.get_component_producer(component_id)
+                            if producer:
+                                self._workflow.context.set_variable(producer, cleaned_component["value"])
+                                logger.info(f"[DAG] Stored return value of {component_id} in context under {producer}")
+
+                        self._layout_manager.add_component(cleaned_component)
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(f"Added component with state: {cleaned_component}")
             else:
-                # Convert HTML string to component data
-                component = {
-                    "type": "html",
-                    "content": str(component),
-                    "size": 1.0,  # HTML components take full width
-                }
-                self._layout_manager.add_component(component)
+                # Components without IDs are added as-is
+                self._layout_manager.add_component(cleaned_component)
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"Added HTML component: {component}")
+                    logger.debug(f"Added component without ID: {cleaned_component}")
         except Exception as e:
             logger.error(f"Error adding component: {e}", exc_info=True)
 
@@ -157,18 +191,30 @@ class BasePreswaldService:
         return affected
 
     def get_component_state(self, component_id: str, default: Any = None) -> Any:
-        """Retrieve the current state for a given component."""
         with self._lock:
             value = self._component_states.get(component_id, default)
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"[STATE] Getting state for {component_id}: {value}")
+            logger.info(f"[STATE] Getting state for {component_id}: {value}")
 
-            # register a DAG dependency if workflow is active
+            if isinstance(value, ComponentReturn):
+                logger.warning(f"[STATE] Got unexpected ComponentReturn in state for {component_id}")
+                value = value.value  # unwrap
+
             if self._current_atom:
-                logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
-                if self._current_atom not in self._workflow.atoms:
-                    self._workflow.atoms[self._current_atom] = Atom(name=self._current_atom, func=lambda: None)
-                self._workflow.atoms[self._current_atom].dependencies.add(component_id)
+                producer = self._workflow.get_component_producer(component_id)
+
+                # ⛔ Don't create circular edge: current_atom → its own output
+                if component_id != self._current_atom and producer != self._current_atom:
+                    #logger.info(f"[DAG] {self._current_atom} depends on {component_id}")
+                    #self._workflow.atoms[self._current_atom].dependencies.add(component_id)
+
+                    if producer:
+                        logger.info(f"[DAG] {self._current_atom} also depends on producer atom {producer}")
+                        self._workflow.atoms[self._current_atom].dependencies.add(producer)
+
+                    # Register fallback only if atom not declared
+                    self._ensure_dummy_atom(self._current_atom)
 
             return value
 
@@ -290,7 +336,6 @@ class BasePreswaldService:
 
         # Update only changed states
         self._update_component_states(changed_states)
-        self._layout_manager.clear_layout()
 
         # Update states and trigger script rerun
         runner = self.script_runners.get(client_id)
@@ -333,6 +378,24 @@ class BasePreswaldService:
             await runner.start(self._script_path)
 
         return runner
+
+    def _register_dummy_atom(self, atom_name: str):
+        """Safely register a placeholder atom to avoid undefined references."""
+        current_atom = self._workflow._current_atom
+
+        # Avoid registering a dummy that would point to itself
+        if atom_name == current_atom:
+            logger.debug(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
+            return
+
+        if atom_name not in self._workflow.atoms:
+            logger.warning(f"[DAG] (fallback) Registering dummy atom for '{atom_name}'")
+            dummy_func = lambda **kwargs: None
+            self._workflow.atoms[atom_name] = Atom(
+                name=atom_name,
+                func=dummy_func,
+                original_func=dummy_func,
+            )
 
     async def _send_error(self, client_id: str, message: str):
         """Send error message to a client"""
