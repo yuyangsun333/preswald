@@ -111,7 +111,28 @@ def _register_routes(app: FastAPI):
     _register_websocket_routes(app)
     _register_static_routes(app)  # order matters for static routes
 
+def render_once(script_path: str) -> dict:
+    """
+    Run a Preswald script once in headless mode and return the rendered layout.
+    Intended for CLI use (e.g. PDF export).
+    """
+    from preswald.engine.service import PreswaldService
+    from preswald.engine.runner import ScriptRunner
 
+    service = PreswaldService.initialize(script_path)
+    service.script_path = script_path
+
+    runner = ScriptRunner(
+        session_id="cli-export",
+        send_message_callback=lambda msg: None,
+        initial_states={},
+    )
+
+    service.script_runners["cli-export"] = runner
+    runner.run_sync(script_path)  # ← Now sync
+
+    return service.get_rendered_components()
+    
 def start_server(script: str | None = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)

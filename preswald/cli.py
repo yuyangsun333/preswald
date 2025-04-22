@@ -4,7 +4,12 @@ import tempfile
 
 import click
 
+from preswald.engine.base_service import BasePreswaldService
 from preswald.engine.telemetry import TelemetryService
+
+
+service = BasePreswaldService()
+layout = service._layout_manager
 
 
 # Create a temporary directory for IPC
@@ -182,7 +187,7 @@ def run(port, log_level, disable_new_tab):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
+def deploy(script, target, port, log_level, github, api_key):
     """
     Deploy your Preswald app.
 
@@ -325,6 +330,7 @@ def stop(target):
     except Exception:
         sys.exit(1)
 
+
 @cli.command()
 @click.pass_context
 def tutorial(ctx):
@@ -358,6 +364,30 @@ def tutorial(ctx):
     finally:
         # Change back to original directory
         os.chdir(current_dir)
+
+
+@cli.command()
+@click.argument("script", required=True)
+@click.option("--format", type=click.Choice(["pdf"]), required=True)
+@click.option("--output", type=click.Path(), help="Path to the output file.")
+def export(script, format, output):
+    """Export the given Preswald script as a PDF report."""
+    output_path = output or "preswald_report.pdf"
+
+    if not os.path.exists(script):
+        click.echo(f"❌ Script not found: {script}")
+        return
+
+    click.echo(f"📄 Rendering '{script}'...")
+
+    from preswald.main import render_once
+    layout = render_once(script)
+
+    click.echo(f"✅ Render complete. Found {len(layout['rows'])} rows of components.")
+
+    # Placeholder: write your code here to render to PDF
+
+    click.echo(f"💾 Would write PDF to: {output_path}")
 
 
 if __name__ == "__main__":

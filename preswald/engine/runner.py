@@ -236,6 +236,17 @@ class ScriptRunner:
             sys.stdout = old_stdout
             logger.debug("[ScriptRunner] Restored stdout")
 
+    def run_sync(self, script_path: str):
+        """Run the script synchronously for CLI tools like export."""
+        import asyncio
+
+        self.script_path = script_path
+        self._state = ScriptState.RUNNING
+        self._run_count = 1
+
+        # block on the async `run_script()` method
+        asyncio.run(self.run_script())
+
     async def run_script(self):
         """Execute the script with enhanced error handling and state management."""
         if not self.is_running or not self.script_path:
