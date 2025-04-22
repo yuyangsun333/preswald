@@ -187,7 +187,7 @@ def run(port, log_level, disable_new_tab):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, target, port, log_level, github, api_key):
+def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
     """
     Deploy your Preswald app.
 
