@@ -122,9 +122,11 @@ def render_once(script_path: str) -> dict:
     service = PreswaldService.initialize(script_path)
     service.script_path = script_path
 
+    async def noop_message_handler(msg): pass
+
     runner = ScriptRunner(
         session_id="cli-export",
-        send_message_callback=lambda msg: None,
+        send_message_callback=noop_message_handler,
         initial_states={},
     )
 
