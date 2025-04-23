@@ -1,4 +1,13 @@
-name,value
-A,1
-B,2
-C,3
+Endpoint,Method,Description,Parameters,Response
+/users,GET,Get all users data,"None","{""status"":200, ""data"":[]}"
+/users/{id},GET,Get user data by ID,"{""id"": int}","{""status"":200, ""data"":{""id"":1, ""name"":""John Doe"", ""age"":30, ""email"":""john.doe@example.com""}}"
+/users/{id},PUT,Update user data by ID,"{""id"": int, ""name"": string, ""age"": int, ""email"": string}","{""status"":200, ""message"":""User data updated successfully""}"
+/users/{id},DELETE,Delete user data by ID,"{""id"": int}","{""status"":200, ""message"":""User data deleted successfully""}"
+/products,GET,Get all products data,"None","{""status"":200, ""data"":[]}"
+/products/{id},GET,Get product data by ID,"{""id"": int}","{""status"":200, ""data"":{""id"":1, ""name"":""Product A"", ""price"":50.00, ""category"":""Electronics""}}"
+/products/{id},PUT,Update product data by ID,"{""id"": int, ""name"": string, ""price"": float, ""category"": string}","{""status"":200, ""message"":""Product data updated successfully""}"
+/products/{id},DELETE,Delete product data by ID,"{""id"": int}","{""status"":200, ""message"":""Product data deleted successfully""}"
+/orders,GET,Get all orders data,"None","{""status"":200, ""data"":[]}"
+/orders/{id},GET,Get order data by ID,"{""id"": int}","{""status"":200, ""data"":{""id"":1, ""product_id"":1, ""quantity"":2, ""total_price"":100.00}}"
+/orders/{id},PUT,Update order data by ID,"{""id"": int, ""product_id"": int, ""quantity"": int, ""total_price"": float}","{""status"":200, ""message"":""Order data updated successfully""}"
+/orders/{id},DELETE,Delete order data by ID,"{""id"": int}","{""status"":200, ""message"":""Order data deleted successfully""}"

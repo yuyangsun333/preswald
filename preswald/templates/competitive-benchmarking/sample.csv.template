@@ -1,4 +1,32 @@
-name,value
-A,1
-B,2
-C,3
+Feature, Our Product, Competitor 1, Competitor 2, Competitor 3
+Speed, 250, 245, 255, 240
+Accuracy, 95%, 92%, 94%, 93%
+Reliability, High, Medium, High, High
+Support, 24/7, 9-5, 24/7, 24/7
+Price, $199, $220, $189, $205
+User-Friendly, Yes, No, Yes, Yes
+Integration, Seamless, Partial, Seamless, Seamless
+Updates, Monthly, Quarterly, Monthly, Monthly
+Customization, Limited, Extensive, Limited, Limited
+Security, AES-256, AES-128, AES-256, AES-256
+Ease of Use, 4.5, 3.8, 4.3, 4.4
+Customer Satisfaction, 90%, 85%, 88%, 89%
+Innovation, Regular, Rare, Regular, Regular
+Training, Online, In-Person, Online, Online
+Scalability, High, Low, High, High
+Compatibility, Windows, Mac, Windows, Windows
+Response Time, 2ms, 5ms, 3ms, 3ms
+Feedback, Positive, Mixed, Positive, Positive
+Data Storage, 1TB, 500GB, 1TB, 1TB
+Mobile App, Yes, No, Yes, Yes
+Reliability, High, Medium, High, High
+Customer Support, Live Chat, Email, Live Chat, Live Chat
+API Access, Yes, No, Yes, Yes
+Uptime, 99.9%, 99.5%, 99.8%, 99.9%
+Reporting, Advanced, Basic, Advanced, Advanced
+Training Materials, Videos, Manuals, Videos, Videos
+Data Import/Export, CSV, Excel, CSV, CSV
+Collaboration Tools, Yes, No, Yes, Yes
+Feedback Mechanism, Surveys, Tickets, Surveys, Surveys
+Backup Options, Cloud, Local, Cloud, Cloud
+Data Visualization, Charts, Tables, Charts, Charts

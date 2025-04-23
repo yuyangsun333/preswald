@@ -1,4 +1,97 @@
-name,value
-A,1
-B,2
-C,3
+Component,Description,Status,Owner,Dependencies
+Piston,High-strength steel piston for heavy-duty applications,In Progress,John Doe,Engine Block
+Gearbox,Durable aluminum gearbox for power transmission,Completed,Jane Smith,Drive Shaft
+Valve,Stainless steel valve for precise fluid control,In Progress,Michael Johnson,Piping System
+Camshaft,Carbon fiber camshaft for high-performance engines,Planned,Sarah Brown,Engine Block
+Turbocharger,High-efficiency turbocharger for increased power output,Completed,David Wilson,Intake System
+Cylinder Head,Alloy cylinder head for improved engine efficiency,In Progress,Emily Davis,Engine Block
+Suspension System,Adjustable suspension system for a smooth ride,Planned,Robert Martinez,Chassis
+Exhaust Manifold,Stainless steel exhaust manifold for optimal gas flow,Completed,Laura Taylor,Intake System
+Fuel Injector,Precision fuel injector for efficient fuel delivery,In Progress,William Clark,Fuel Pump
+Brake Caliper,Aluminum brake caliper for responsive braking,Planned,Hannah Lee,Brake System
+Radiator,High-performance radiator for engine cooling,Completed,Alexander Garcia,Cooling System
+Steering Rack,Heavy-duty steering rack for precise control,In Progress,Olivia Anderson,Chassis
+Ignition Coil,High-energy ignition coil for reliable spark,Planned,Ethan Baker,Electrical System
+Wheel Hub,Reinforced steel wheel hub for durability,Completed,Isabella Nguyen,Suspension System
+Throttle Body,Precision-machined throttle body for smooth airflow,In Progress,Liam Rodriguez,Intake System
+Drive Shaft,Carbon fiber drive shaft for lightweight performance,Planned,Sophia Wright,Gearbox
+Spark Plug,Platinum spark plug for efficient combustion,Completed,Mason Perez,Ignition Coil
+Intercooler,High-flow intercooler for lower intake temperatures,In Progress,Amelia Rivera,Turbocharger
+Control Arm,Adjustable control arm for improved handling,Planned,Benjamin Evans,Suspension System
+Oil Pan,Aluminum oil pan for improved oil circulation,Completed,Grace Lewis,Engine Block
+Fuel Pump,High-pressure fuel pump for optimal fuel delivery,In Progress,Logan Walker,Fuel Tank
+Intake Manifold,Composite intake manifold for increased airflow,Planned,Avery Hall,Engine Block
+Brake Disc,Carbon ceramic brake disc for high-performance braking,Completed,Ella Young,Brake Caliper
+Wheel Bearing,Sealed wheel bearing for smooth rotation,In Progress,Leo Hernandez,Wheel Hub
+Timing Belt,Heavy-duty timing belt for precise engine timing,Planned,Victoria King,Engine Block
+Thermostat,Precision thermostat for optimal engine temperature,Completed,Nicholas Scott,Cooling System
+Shock Absorber,Adjustable shock absorber for a comfortable ride,In Progress,Zoey Adams,Suspension System
+Axle Shaft,Hardened steel axle shaft for reliable power transmission,Planned,Christian Green,Drive Shaft
+Crankshaft,Forged steel crankshaft for high-strength performance,Completed,Mia Baker,Engine Block
+Brake Pad,Ceramic brake pad for consistent braking performance,In Progress,Andrew Rodriguez,Brake Caliper
+Throttle Position Sensor,Precision throttle position sensor for accurate engine control,Planned,Kylie Lopez,Engine Control Unit
+Fuel Tank,Durable fuel tank for safe fuel storage,Completed,James Perez,Fuel Pump
+Water Pump,High-flow water pump for efficient coolant circulation,In Progress,Samantha Hall,Cooling System
+Control Module,Advanced control module for integrated system control,Planned,William Hernandez,Engine Control Unit
+Oxygen Sensor,Premium oxygen sensor for precise air-fuel ratio monitoring,Completed,Madison Young,Exhaust System
+Wheel Rim,Lightweight alloy wheel rim for improved performance,In Progress,Daniel Lee,Wheel Hub
+Starter Motor,High-torque starter motor for reliable engine starting,Planned,Chloe Moore,Engine Control Unit
+EGR Valve,Efficient EGR valve for reduced emissions,Completed,Matthew Carter,Exhaust System
+Fuel Filter,High-flow fuel filter for clean fuel delivery,In Progress,Hailey Perez,Fuel Tank
+Air Filter,Performance air filter for improved engine breathing,Planned,Josephine Walker,Intake System
+Power Steering Pump,Variable-assist power steering pump for easy maneuverability,Completed,Nathan Foster,Steering Rack
+Battery,High-capacity battery for reliable electrical power,In Progress,Abigail Rivera,Electrical System
+Catalytic Converter,High-efficiency catalytic converter for emissions control,Planned,Dylan Lewis,Exhaust System
+Clutch Kit,Performance clutch kit for smooth gear changes,Completed,Harper Rodriguez,Transmission System
+Coolant Reservoir,Durable coolant reservoir for coolant storage,In Progress,Christopher Hall,Cooling System
+Engine Mount,Heavy-duty engine mount for stability,Planned,Addison Hernandez,Chassis
+PCV Valve,Precision PCV valve for efficient crankcase ventilation,Completed,Isaac Young,Engine Block
+Drive Belt,Durable drive belt for reliable power transmission,In Progress,Sophie Lee,Engine Block
+Muffler,Performance muffler for enhanced exhaust sound,Planned,Carter Moore,Exhaust System
+Serpentine Belt,High-strength serpentine belt for multiple accessory drive,Completed,Maya Carter,Engine Block
+Throttle Cable,Durable throttle cable for precise throttle control,In Progress,Aria Perez,Intake System
+Turbo Boost Gauge,Electronic turbo boost gauge for monitoring turbo performance,Planned,Julian Walker,Dashboard
+Transmission Fluid,High-performance transmission fluid for smooth gear shifts,Completed,Adeline Foster,Transmission System
+Brake Fluid,High-temperature brake fluid for consistent braking performance,In Progress,Grayson Lewis,Brake System
+Engine Oil,Full synthetic engine oil for optimal engine lubrication,Planned,Audrey Rodriguez,Engine Block
+Coolant,Extended-life coolant for reliable engine cooling,Completed,Eli Young,Cooling System
+Steering Wheel,Leather-wrapped steering wheel for comfort and style,In Progress,Penelope Lee,Dashboard
+Engine Control Unit,Advanced engine control unit for precise engine management,Planned,Rowan Moore,Electrical System
+Exhaust Pipe,Stainless steel exhaust pipe for improved exhaust flow,Completed,Skylar Carter,Exhaust System
+Air Intake Tube,Durable air intake tube for smooth airflow,In Progress,Quinn Foster,Intake System
+Chassis Frame,Reinforced chassis frame for structural integrity,Planned,Wyatt Lewis,Chassis
+Dashboard,Advanced dashboard for vehicle information display,Completed,Emerson Young,Interior System
+Shock Mount,Heavy-duty shock mount for secure shock absorber installation,In Progress,Elliot Lee,Suspension System
+Roll Cage,Sturdy roll cage for driver safety,Planned,Finley Moore,Chassis
+Lug Nut,Durable lug nut for secure wheel attachment,Completed,Jordan Carter,Wheel Hub
+Tire,High-performance tire for traction and handling,In Progress,Kai Foster,Wheel Hub
+Gasket Set,Complete gasket set for engine sealing,Planned,Logan Lewis,Engine Block
+Oil Filter,High-flow oil filter for clean oil circulation,Completed,Morgan Young,Engine Block
+Ignition Switch,Premium ignition switch for reliable engine start,In Progress,Noah Lee,Electrical System
+Differential,Heavy-duty differential for torque distribution,Planned,Owen Moore,Drive Shaft
+Brake Booster,Power brake booster for enhanced braking power,Completed,Peyton Carter,Brake System
+AC Compressor,High-efficiency AC compressor for cooling performance,In Progress,Quinn Foster,Cooling System
+Hood,Lightweight aluminum hood for vehicle aesthetics,Planned,Riley Lewis,Exterior System
+Headlight,LED headlight for improved visibility,Completed,Sawyer Young,Exterior System
+Tail Light,Sequential LED tail light for stylish illumination,In Progress,Taylor Lee,Exterior System
+Fog Light,Bright LED fog light for enhanced visibility,Planned,Finley Moore,Exterior System
+Mirror Set,Durable mirror set for rear visibility,Completed,Jordan Carter,Exterior System
+Radiator Fan,High-flow radiator fan for efficient cooling,In Progress,Kai Foster,Cooling System
+Body Kit,Custom body kit for vehicle aesthetics,Planned,Logan Lewis,Exterior System
+Exhaust Tip,Stylish exhaust tip for enhanced exhaust appearance,Completed,Morgan Young,Exterior System
+Side Skirt,Aerodynamic side skirt for improved vehicle performance,In Progress,Noah Lee,Exterior System
+Spoiler,Functional spoiler for enhanced aerodynamics,Planned,Owen Moore,Exterior System
+Rear Wing,Aerodynamic rear wing for improved downforce,Completed,Peyton Carter,Exterior System
+Underbody Panel,Durable underbody panel for vehicle protection,In Progress,Quinn Foster,Exterior System
+Wheel Arch Trim,Stylish wheel arch trim for vehicle aesthetics,Planned,Riley Lewis,Exterior System
+Floor Mat,Durable floor mat for interior protection,Completed,Sawyer Young,Interior System
+Seat Cover,Custom seat cover for interior aesthetics,In Progress,Taylor Lee,Interior System
+Steering Wheel Cover,Comfortable steering wheel cover for grip,Planned,Taylor Lee,Interior System
+Carpet Kit,Plush carpet kit for interior comfort,Completed,Finley Moore,Interior System
+Dash Cover,Custom dash cover for interior protection,In Progress,Jordan Carter,Interior System
+Armrest,Soft armrest for interior comfort,Planned,Kai Foster,Interior System
+Shift Knob,Custom shift knob for personalized style,Completed,Logan Lewis,Interior System
+Pedal Set,Sporty pedal set for enhanced driving experience,In Progress,Morgan Young,Interior System
+Cargo Net,Durable cargo net for storage organization,Planned,Noah Lee,Interior System
+Roof Rack,Functional roof rack for additional storage,Completed,Owen Moore,Exterior System
+Tow Hitch,Heavy-duty tow hitch for towing capabilities,In Progress,Peyton Carter,Exterior System

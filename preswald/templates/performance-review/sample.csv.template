@@ -1,4 +1,11 @@
-name,value
-A,1
-B,2
-C,3
+Category,Goal,Progress,Rating,Comments
+Communication,Improve communication skills,75%,4,"Employee has shown significant improvement in communicating with team members and stakeholders."
+Time Management,Meet project deadlines,90%,5,"Consistently meets project deadlines and effectively prioritizes tasks."
+Teamwork,Collaborate effectively with team,80%,4,"Works well with team members and actively contributes to team projects."
+Problem Solving,Enhance problem-solving skills,60%,3,"Employee has demonstrated some improvement in problem-solving abilities but can further develop this skill."
+Leadership,Take on leadership roles,50%,2,"Struggles with taking on leadership roles, needs to work on building leadership skills."
+Adaptability,Adapt to changes in work environment,70%,4,"Has shown good adaptability to changes in work environment and quickly adjusts to new situations."
+Initiative,Show initiative in projects,85%,5,"Consistently takes initiative in projects and goes above and beyond expectations."
+Professional Development,Pursue professional growth opportunities,80%,4,"Actively seeks professional development opportunities and shows a commitment to continuous learning."
+Quality of Work,Deliver high-quality work,95%,5,"Consistently delivers high-quality work that meets or exceeds expectations."
+Attendance,Maintain good attendance record,90%,5,"Has maintained an excellent attendance record and is punctual for all meetings and work commitments."

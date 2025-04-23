@@ -1,4 +1,20 @@
-name,value
-A,1
-B,2
-C,3
+Task,New Hire,Status,Due Date,Owner
+Paperwork completion,John Smith,In progress,2022-09-15,HR
+IT Setup,Mary Johnson,Not started,2022-09-20,IT
+Training sessions,Michael Davis,Completed,2022-09-10,Training Manager
+Benefits enrollment,Amy Wilson,In progress,2022-09-25,HR
+Team introduction,Sarah Brown,Not started,2022-09-18,Team Lead
+Security orientation,Robert Lee,Overdue,2022-09-08,Security Team
+Equipment setup,Emily Moore,Not started,2022-09-22,IT
+Performance review,Jacob Taylor,Not started,2022-09-30,HR
+Company policies review,Olivia Anderson,Completed,2022-09-12,HR
+Welcome lunch,William Martinez,Not started,2022-09-19,Team Lead
+HR orientation,Mia Garcia,In progress,2022-09-23,HR
+Software training,Ava Perez,Not started,2022-09-21,IT
+Job shadowing,Noah Gonzalez,Not started,2022-09-26,Team Lead
+Feedback session,Lily Rodriguez,Completed,2022-09-14,HR
+Workspace setup,Ethan Hernandez,In progress,2022-09-24,IT
+Meet the team,Isabella Flores,Not started,2022-09-17,Team Lead
+Onboarding survey,Owen Adams,Not started,2022-09-28,HR
+Performance goals discussion,Sophia Nguyen,Completed,2022-09-13,Manager
+Ergonomics assessment,Lucas Kim,In progress,2022-09-27,IT

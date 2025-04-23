@@ -1,4 +1,146 @@
-name,value
-A,1
-B,2
-C,3
+Date,Title,Channel,Status,Owner
+2022-01-03,New Year Campaign Launch,Social Media,In Progress,Alice Johnson
+2022-01-05,Product Tutorial Video Release,YouTube,Planned,David Smith
+2022-01-10,Weekly Blog Post Publication,Website,Completed,Emma Brown
+2022-01-15,Email Newsletter Distribution,Email,Planned,James Wilson
+2022-01-20,Social Media Q&A Session,Social Media,In Progress,Olivia Davis
+2022-01-25,Webinar on Industry Trends,Webinar,Planned,Sophia Rodriguez
+2022-01-30,Product Launch Announcement,Website,Completed,Noah Martinez
+2022-02-05,Monthly Report Publication,Website,Planned,Ava Taylor
+2022-02-10,Social Media Poll Campaign,Social Media,In Progress,Ethan Anderson
+2022-02-15,Email Campaign for Valentine's Day,Email,Completed,Isabella Hernandez
+2022-02-20,Live Demo on New Features,Webinar,Planned,Mia Garcia
+2022-02-25,Content Collaboration with Influencers,Social Media,In Progress,Mason Lopez
+2022-03-01,Case Study Publication,Website,Planned,Charlotte Hill
+2022-03-05,Video Series Launch,YouTube,Completed,Liam King
+2022-03-10,Email Blast for Spring Discount,Email,In Progress,Amelia Young
+2022-03-15,Webinar on Customer Success Tips,Webinar,Planned,Benjamin Scott
+2022-03-20,Social Media Giveaway Campaign,Social Media,Completed,Ella Green
+2022-03-25,Product Demo Videos Release,YouTube,Planned,Aiden Adams
+2022-03-30,Quarterly Review Publication,Website,In Progress,Sofia Baker
+2022-04-05,Social Media Takeover Event,Social Media,Completed,Lucas Hall
+2022-04-10,Email Newsletter for Product Updates,Email,Planned,Harper Morris
+2022-04-15,Webinar on Digital Marketing Strategies,Webinar,In Progress,Jack Rivera
+2022-04-20,Launching Podcast Series,Podcast,Planned,Scarlett Wood
+2022-04-25,Content Localization for Global Audience,Social Media,Completed,Henry Watson
+2022-04-30,New Feature Announcement,Website,In Progress,Mila Brooks
+2022-05-05,Blog Guest Post Publication,Website,Planned,Michael Price
+2022-05-10,YouTube Live Session on Customer Service,YouTube,Completed,Victoria Perry
+2022-05-15,Email Campaign for Mother's Day,Email,Planned,Jameson Ward
+2022-05-20,Webinar on SEO Best Practices,Webinar,In Progress,Poppy Foster
+2022-05-25,Social Media Influencer Collaboration,Social Media,Planned,Elizabeth Long
+2022-05-30,Podcast Episode Release,Podcast,Completed,Grayson Howard
+2022-06-05,Website Redesign Announcement,Website,Planned,William Cox
+2022-06-10,Instagram Stories Campaign,Social Media,In Progress,Grace Coleman
+2022-06-15,Email Automation Workshop,Email,Completed,Hudson Simmons
+2022-06-20,Webinar on Content Creation Tips,Webinar,Planned,Luna Ward
+2022-06-25,Promotional Campaign Launch,Social Media,In Progress,Lincoln Mitchell
+2022-06-30,Podcast Guest Interview,Podcast,Completed,Harmony Reed
+2022-07-05,Monthly Newsletter Publication,Website,Planned,Leo Hayes
+2022-07-10,YouTube Video Series Launch,YouTube,In Progress,Harper Mason
+2022-07-15,Email Campaign for Summer Sale,Email,Completed,Lila Rose
+2022-07-20,Webinar on Social Media Strategies,Webinar,Planned,Logan Coleman
+2022-07-25,Social Media Live Q&A Session,Social Media,In Progress,Lucy Bennett
+2022-07-30,Podcast Collaboration with Industry Experts,Podcast,Planned,Miller Reed
+2022-08-05,Product Launch Teaser Campaign,Social Media,Completed,Nova Ellis
+2022-08-10,Email Marketing Workshop,Email,Planned,Otto James
+2022-08-15,Webinar on Video Content Creation,Webinar,In Progress,Penelope Gray
+2022-08-20,Instagram Live Event,Social Media,Planned,Quinn Hughes
+2022-08-25,Promotional Podcast Episode Release,Podcast,Completed,Ruby Ward
+2022-08-30,Quarterly Performance Report Publication,Website,In Progress,Samson Myers
+2022-09-05,Instagram Reels Campaign,Social Media,Planned,Tate Barnes
+2022-09-10,Email Newsletter for Back-to-School Season,Email,In Progress,Uma Ross
+2022-09-15,Webinar on Email Automation Strategies,Webinar,Completed,Violet Reed
+2022-09-20,Podcast Episode with Customer Testimonials,Podcast,Planned,Wyatt Simmons
+2022-09-25,Social Media Contest,Instagram,In Progress,Xander Ward
+2022-09-30,Product Update Announcement,Website,Completed,Yara Foster
+2022-10-05,Halloween Campaign Launch,Social Media,Planned,Zane Clarke
+2022-10-10,Email Campaign for Fall Collection,Email,In Progress,Aria Ward
+2022-10-15,Webinar on Lead Generation Tactics,Webinar,Completed,Beckett Foster
+2022-10-20,Promotional Podcast Episode Release,Podcast,Planned,Cora Ward
+2022-10-25,Social Media Story Challenge,Instagram,In Progress,Donovan Ward
+2022-10-30,Quarterly Strategy Review Publication,Website,Completed,Elara Foster
+2022-11-05,Black Friday Campaign Preparation,Social Media,Planned,Finn Ward
+2022-11-10,Email Blast for Pre-Black Friday Deals,Email,In Progress,Gia Ward
+2022-11-15,Webinar on Holiday Marketing Tips,Webinar,Completed,Hayden Foster
+2022-11-20,Thanksgiving Promotion Announcement,Social Media,Planned,Isla Ward
+2022-11-25,Social Media Giveaway,Instagram,In Progress,Jonah Ward
+2022-11-30,Product Launch Countdown,Website,Completed,Kai Foster
+2022-12-05,Christmas Campaign Launch,Social Media,Planned,Lia Ward
+2022-12-10,Email Campaign for Holiday Gift Guide,Email,In Progress,Milo Ward
+2022-12-15,Webinar on Year-End Review,Webinar,Completed,Nova Foster
+2022-12-20,New Year's Promotion Teaser,Social Media,Planned,Oakley Ward
+2022-12-25,Social Media Festive Challenge,Instagram,In Progress,Paxton Ward
+2022-12-30,Year-End Summary Publication,Website,Completed,Quinn Foster
+2023-01-05,New Year Campaign Launch,Social Media,Planned,Remy Ward
+2023-01-10,Product Tutorial Video Release,YouTube,In Progress,Sage Foster
+2023-01-15,Email Newsletter Distribution,Email,Completed,Tate Foster
+2023-01-20,Social Media Q&A Session,Social Media,Planned,Urban Foster
+2023-01-25,Webinar on Industry Trends,Webinar,In Progress,Vale Foster
+2023-01-30,Product Launch Announcement,Website,Completed,Wyatt Foster
+2023-02-05,Monthly Report Publication,Website,Planned,Xan Foster
+2023-02-10,Social Media Poll Campaign,Social Media,In Progress,Yarrow Foster
+2023-02-15,Email Campaign for Valentine's Day,Email,Completed,Zen Foster
+2023-02-20,Live Demo on New Features,Webinar,Planned,Arlo Foster
+2023-02-25,Content Collaboration with Influencers,Social Media,In Progress,Bodhi Foster
+2023-03-01,Case Study Publication,Website,Completed,Cove Foster
+2023-03-05,Video Series Launch,YouTube,Planned,Dune Foster
+2023-03-10,Email Blast for Spring Discount,Email,In Progress,Echo Foster
+2023-03-15,Webinar on Customer Success Tips,Webinar,Completed,Finch Foster
+2023-03-20,Social Media Giveaway Campaign,Social Media,Planned,Griffin Foster
+2023-03-25,Product Demo Videos Release,YouTube,In Progress,Hawk Foster
+2023-03-30,Quarterly Review Publication,Website,Completed,Indigo Foster
+2023-04-05,Social Media Takeover Event,Social Media,Planned,Jett Foster
+2023-04-10,Email Newsletter for Product Updates,Email,In Progress,Kit Foster
+2023-04-15,Webinar on Digital Marketing Strategies,Webinar,Completed,Lark Foster
+2023-04-20,Launching Podcast Series,Podcast,Planned,Moss Foster
+2023-04-25,Content Localization for Global Audience,Social Media,In Progress,Nash Foster
+2023-04-30,New Feature Announcement,Website,Completed,Ocean Foster
+2023-05-05,Blog Guest Post Publication,Website,Planned,Pine Foster
+2023-05-10,YouTube Live Session on Customer Service,YouTube,In Progress,Quest Foster
+2023-05-15,Email Campaign for Mother's Day,Email,Completed,Reed Foster
+2023-05-20,Webinar on SEO Best Practices,Webinar,Planned,Sage Foster
+2023-05-25,Social Media Influencer Collaboration,Social Media,In Progress,Tide Foster
+2023-05-30,Podcast Episode Release,Podcast,Completed,Urban Foster
+2023-06-05,Website Redesign Announcement,Website,Planned,Vale Foster
+2023-06-10,Instagram Stories Campaign,Social Media,In Progress,Wyatt Foster
+2023-06-15,Email Automation Workshop,Email,Completed,Xan Foster
+2023-06-20,Webinar on Content Creation Tips,Webinar,Planned,Yarrow Foster
+2023-06-25,Promotional Campaign Launch,Social Media,In Progress,Zen Foster
+2023-06-30,Podcast Guest Interview,Podcast,Completed,Arlo Foster
+2023-07-05,Monthly Newsletter Publication,Website,Planned,Bodhi Foster
+2023-07-10,YouTube Video Series Launch,YouTube,In Progress,Cove Foster
+2023-07-15,Email Campaign for Summer Sale,Email,Completed,Dune Foster
+2023-07-20,Webinar on Social Media Strategies,Webinar,Planned,Echo Foster
+2023-07-25,Social Media Live Q&A Session,Social Media,In Progress,Finch Foster
+2023-07-30,Podcast Collaboration with Industry Experts,Podcast,Completed,Griffin Foster
+2023-08-05,Product Launch Teaser Campaign,Social Media,Planned,Hawk Foster
+2023-08-10,Email Marketing Workshop,Email,In Progress,Indigo Foster
+2023-08-15,Webinar on Video Content Creation,Webinar,Completed,Jett Foster
+2023-08-20,Instagram Live Event,Social Media,Planned,Kit Foster
+2023-08-25,Promotional Podcast Episode Release,Podcast,In Progress,Lark Foster
+2023-08-30,Quarterly Performance Report Publication,Website,Completed,Moss Foster
+2023-09-05,Instagram Reels Campaign,Social Media,Planned,Nash Foster
+2023-09-10,Email Newsletter for Back-to-School Season,Email,In Progress,Ocean Foster
+2023-09-15,Webinar on Email Automation Strategies,Webinar,Completed,Pine Foster
+2023-09-20,Podcast Episode with Customer Testimonials,Podcast,Planned,Quest Foster
+2023-09-25,Social Media Contest,Instagram,In Progress,Reed Foster
+2023-09-30,Product Update Announcement,Website,Completed,Sage Foster
+2023-10-05,Halloween Campaign Launch,Social Media,Planned,Tide Foster
+2023-10-10,Email Campaign for Fall Collection,Email,In Progress,Urban Foster
+2023-10-15,Webinar on Lead Generation Tactics,Webinar,Completed,Vale Foster
+2023-10-20,Promotional Podcast Episode Release,Podcast,Planned,Wyatt Foster
+2023-10-25,Social Media Story Challenge,Instagram,In Progress,Xan Foster
+2023-10-30,Quarterly Strategy Review Publication,Website,Completed,Yarrow Foster
+2023-11-05,Black Friday Campaign Preparation,Social Media,Planned,Zen Foster
+2023-11-10,Email Blast for Pre-Black Friday Deals,Email,In Progress,Arlo Foster
+2023-11-15,Webinar on Holiday Marketing Tips,Webinar,Completed,Bodhi Foster
+2023-11-20,Thanksgiving Promotion Announcement,Social Media,Planned,Cove Foster
+2023-11-25,Social Media Giveaway,Instagram,In Progress,Dune Foster
+2023-11-30,Product Launch Countdown,Website,Completed,Echo Foster
+2023-12-05,Christmas Campaign Launch,Social Media,Planned,Finch Foster
+2023-12-10,Email Campaign for Holiday Gift Guide,Email,In Progress,Griffin Foster
+2023-12-15,Webinar on Year-End Review,Webinar,Completed,Hawk Foster
+2023-12-20,New Year's Promotion Teaser,Social Media,Planned,Indigo Foster
+2023-12-25,Social Media Festive Challenge,Instagram,In Progress,Jett Foster
+2023-12-30,Year-End Summary Publication,Website,Completed,Kit Foster

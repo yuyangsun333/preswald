@@ -1,4 +1,151 @@
-name,value
-A,1
-B,2
-C,3
+Section,Content,Media,Order
+Header,John Doe,"https://example.com/johndoe.jpg",1
+Personal Information,"Full Stack Developer with 5+ years of experience in web development.","",2
+Education,"Bachelor's Degree in Computer Science, University of Techville, 2015-2019","https://example.com/universitylogo.png",3
+Skills,"HTML, CSS, JavaScript, React, Node.js, MongoDB","https://example.com/skillsicon.png",4
+Experience,"Web Developer at Tech Solutions, 2019-2021. Developed responsive web applications.","",5
+Projects,"1. E-Commerce Website - Developed a fully functional e-commerce platform using React and Node.js.","",6
+Contact Info,"Email: johndoe@email.com, Phone: 123-456-7890","https://example.com/contacticon.png",7
+Footer,"Connect with me on LinkedIn: linkedin.com/in/johndoe","https://example.com/linkedinicon.png",8
+Header,Jane Smith,"https://example.com/janesmith.jpg",9
+Personal Information,"Passionate Graphic Designer with a keen eye for detail and creative designs.","",10
+Education,"Master's Degree in Graphic Design, Art Institute of Creativity, 2016-2018","https://example.com/artinstitutelogo.png",11
+Skills,"Adobe Photoshop, Illustrator, InDesign, Sketch, Typography","https://example.com/skillsicon.png",12
+Experience,"Graphic Designer at Creative Studio, 2018-2020. Led design projects for multiple clients.","",13
+Projects,"1. Branding Campaign - Developed visual identity for a new startup, resulting in increased brand recognition.","",14
+Contact Info,"Email: janesmith@email.com, Phone: 987-654-3210","https://example.com/contacticon.png",15
+Footer,"Portfolio: janesmithportfolio.com","https://example.com/portfolioicon.png",16
+Header,Michael Johnson,"https://example.com/michaeljohnson.jpg",17
+Personal Information,"Experienced Marketing Manager with a track record of successful campaigns and brand strategies.","",18
+Education,"Bachelor's Degree in Marketing, University of Marketingville, 2014-2018","https://example.com/marketingvillelogo.png",19
+Skills,"Market Research, Social Media Marketing, SEO, Campaign Management, Analytics","https://example.com/skillsicon.png",20
+Experience,"Marketing Manager at Branding Agency, 2018-2021. Implemented data-driven marketing strategies.","",21
+Projects,"1. Social Media Campaign - Launched a successful social media campaign that increased brand engagement by 30%.","",22
+Contact Info,"Email: michaeljohnson@email.com, Phone: 567-890-1234","https://example.com/contacticon.png",23
+Footer,"Twitter: @michaeljohnson, Instagram: @michael.johnson","https://example.com/socialmediaicon.png",24
+Header,Sarah Brown,"https://example.com/sarahbrown.jpg",25
+Personal Information,"Detail-oriented UX/UI Designer specializing in creating intuitive user experiences and clean designs.","",26
+Education,"Bachelor's Degree in Interaction Design, Design University, 2015-2019","https://example.com/designuniversitylogo.png",27
+Skills,"Wireframing, Prototyping, User Research, Adobe XD, Figma","https://example.com/skillsicon.png",28
+Experience,"UX/UI Designer at Tech Innovations, 2019-present. Collaborated with cross-functional teams to design user-centric products.","",29
+Projects,"1. Mobile App Redesign - Led the redesign of a mobile app resulting in a 20% increase in user retention.","",30
+Contact Info,"Email: sarahbrown@email.com, Phone: 234-567-8901","https://example.com/contacticon.png",31
+Footer,"Dribbble: @sarahbrown, Behance: @sarahbrown","https://example.com/designicon.png",32
+Header,David Lee,"https://example.com/davidlee.jpg",33
+Personal Information,"Dedicated Software Engineer with expertise in building scalable and robust applications.","",34
+Education,"Master's Degree in Computer Engineering, Tech Institute, 2016-2018","https://example.com/techinstitutelogo.png",35
+Skills,"Java, Python, SQL, Spring Boot, Docker, Kubernetes","https://example.com/skillsicon.png",36
+Experience,"Software Engineer at Tech Solutions, 2018-2021. Designed and implemented microservices architecture for web applications.","",37
+Projects,"1. Cloud Migration - Successfully migrated legacy systems to cloud infrastructure for improved scalability and performance.","",38
+Contact Info,"Email: davidlee@email.com, Phone: 345-678-9012","https://example.com/contacticon.png",39
+Footer,"GitHub: @davidlee, Stack Overflow: @davidlee","https://example.com/githubicon.png",40
+Header,Emily Wilson,"https://example.com/emilywilson.jpg",41
+Personal Information,"Creative Content Writer with a passion for storytelling and engaging copywriting.","",42
+Education,"Bachelor's Degree in English Literature, Literature College, 2015-2019","https://example.com/literaturecollegelogo.png",43
+Skills,"SEO Writing, Blogging, Copy Editing, Content Strategy, Social Media Management","https://example.com/skillsicon.png",44
+Experience,"Content Writer at Digital Agency, 2019-2021. Produced high-quality content for various digital platforms.","",45
+Projects,"1. Content Marketing Campaign - Developed and executed a content marketing strategy that increased website traffic by 40%.","",46
+Contact Info,"Email: emilywilson@email.com, Phone: 456-789-0123","https://example.com/contacticon.png",47
+Footer,"Blog: emilywrites.com","https://example.com/blogicon.png",48
+Header,Alexander Garcia,"https://example.com/alexandergarcia.jpg",49
+Personal Information,"Results-driven Sales Manager with a proven track record in achieving sales targets and building strong client relationships.","",50
+Education,"Bachelor's Degree in Business Administration, Business School, 2014-2018","https://example.com/businessschoollogo.png",51
+Skills,"Sales Strategy, Negotiation, CRM Software, Relationship Management, Forecasting","https://example.com/skillsicon.png",52
+Experience,"Sales Manager at Global Sales Inc., 2018-2021. Managed a team of sales representatives and exceeded monthly sales goals.","",53
+Projects,"1. Client Acquisition Program - Developed and implemented a client acquisition program that increased new client sign-ups by 25%.","",54
+Contact Info,"Email: alexandergarcia@email.com, Phone: 567-890-1234","https://example.com/contacticon.png",55
+Footer,"LinkedIn: linkedin.com/in/alexandergarcia","https://example.com/linkedinicon.png",56
+Header,Olivia Martinez,"https://example.com/oliviamartinez.jpg",57
+Personal Information,"Passionate HR Specialist with expertise in recruitment, employee relations, and HR policies.","",58
+Education,"Master's Degree in Human Resource Management, HR Institute, 2016-2018","https://example.com/hrinstitutelogo.png",59
+Skills,"Recruitment, Employee Training, Performance Management, HR Compliance, Conflict Resolution","https://example.com/skillsicon.png",60
+Experience,"HR Specialist at Tech Startups, 2018-present. Implemented recruitment strategies and managed employee relations effectively.","",61
+Projects,"1. Employee Engagement Program - Launched an employee engagement program resulting in a 15% increase in employee satisfaction.","",62
+Contact Info,"Email: oliviamartinez@email.com, Phone: 678-901-2345","https://example.com/contacticon.png",63
+Footer,"Twitter: @oliviamartinez, Instagram: @oliviamartinez","https://example.com/socialmediaicon.png",64
+Header,William Adams,"https://example.com/williamadams.jpg",65
+Personal Information,"Dynamic Project Manager with a proven track record in leading cross-functional teams and delivering projects on time and within budget.","",66
+Education,"Bachelor's Degree in Project Management, Project University, 2014-2018","https://example.com/projectuniversitylogo.png",67
+Skills,"Project Planning, Risk Management, Agile Methodology, Stakeholder Communication, Budgeting","https://example.com/skillsicon.png",68
+Experience,"Project Manager at Tech Projects Inc., 2018-2021. Led various projects from initiation to successful completion.","",69
+Projects,"1. Product Launch - Managed the successful launch of a new product, exceeding sales targets by 20%.","",70
+Contact Info,"Email: williamadams@email.com, Phone: 789-012-3456","https://example.com/contacticon.png",71
+Footer,"Portfolio: williamadamsportfolio.com","https://example.com/portfolioicon.png",72
+Header,Emma White,"https://example.com/emmawhite.jpg",73
+Personal Information,"Innovative Product Designer with a passion for creating user-centered designs and enhancing user experiences.","",74
+Education,"Master's Degree in Industrial Design, Design Institute, 2016-2018","https://example.com/designinstitutelogo.png",75
+Skills,"User Research, Prototyping, 3D Modeling, Sketching, Design Thinking","https://example.com/skillsicon.png",76
+Experience,"Product Designer at Tech Innovations, 2018-present. Collaborated with product teams to design innovative products.","",77
+Projects,"1. Wearable Device Design - Led the design of a wearable device that received industry recognition for its user-centric design.","",78
+Contact Info,"Email: emmawhite@email.com, Phone: 890-123-4567","https://example.com/contacticon.png",79
+Footer,"Dribbble: @emmawhite, Behance: @emmawhite","https://example.com/designicon.png",80
+Header,Christopher Taylor,"https://example.com/christophertaylor.jpg",81
+Personal Information,"Strategic Business Analyst with a strong analytical background and expertise in market research and data analysis.","",82
+Education,"Bachelor's Degree in Economics, Economics College, 2015-2019","https://example.com/economicscollegelogo.png",83
+Skills,"Financial Analysis, Data Visualization, Market Research, Business Intelligence, Statistical Modeling","https://example.com/skillsicon.png",84
+Experience,"Business Analyst at Financial Services Ltd., 2019-2021. Analyzed market trends and provided insights for strategic decision-making.","",85
+Projects,"1. Market Expansion Analysis - Conducted a market expansion analysis that led to a 10% increase in market share.","",86
+Contact Info,"Email: christophertaylor@email.com, Phone: 901-234-5678","https://example.com/contacticon.png",87
+Footer,"LinkedIn: linkedin.com/in/christophertaylor","https://example.com/linkedinicon.png",88
+Header,Isabella Scott,"https://example.com/isabellascott.jpg",89
+Personal Information,"Passionate Event Planner with a creative approach to organizing and executing successful events.","",90
+Education,"Bachelor's Degree in Hospitality Management, Hospitality College, 2014-2018","https://example.com/hospitalitycollegelogo.png",91
+Skills,"Event Coordination, Vendor Management, Budget Planning, Marketing, Client Relations","https://example.com/skillsicon.png",92
+Experience,"Event Planner at Event Management Co., 2018-present. Organized and executed corporate and social events.","",93
+Projects,"1. Corporate Gala Event - Successfully planned and executed a corporate gala event with over 500 attendees and positive feedback.","",94
+Contact Info,"Email: isabellascott@email.com, Phone: 123-456-7890","https://example.com/contacticon.png",95
+Footer,"Portfolio: isabellascottportfolio.com","https://example.com/portfolioicon.png",96
+Header,Nathan Hall,"https://example.com/nathanhall.jpg",97
+Personal Information,"Creative Video Producer with experience in concept development, filming, and post-production editing.","",98
+Education,"Bachelor's Degree in Film Production, Film School, 2015-2019","https://example.com/filmschoollogo.png",99
+Skills,"Video Editing, Cinematography, Storyboarding, Color Grading, Sound Design","https://example.com/skillsicon.png",100
+Experience,"Video Producer at Media Productions Ltd., 2019-2021. Produced high-quality video content for various clients and platforms.","",101
+Projects,"1. Short Film Production - Directed and produced a short film that won an award at a local film festival.","",102
+Contact Info,"Email: nathanhall@email.com, Phone: 234-567-8901","https://example.com/contacticon.png",103
+Footer,"Vimeo: @nathanhall, YouTube: @nathanhall","https://example.com/videoicon.png",104
+Header,Victoria Clark,"https://example.com/victoriaclark.jpg",105
+Personal Information,"Experienced Public Relations Specialist with a proven track record in media relations, crisis management, and strategic communications.","",106
+Education,"Master's Degree in Public Relations, PR Institute, 2016-2018","https://example.com/prinstitutelogo.png",107
+Skills,"Media Relations, Crisis Communication, Press Releases, Event Planning, Social Media Management","https://example.com/skillsicon.png",108
+Experience,"Public Relations Specialist at PR Agency, 2018-present. Managed PR campaigns and handled media inquiries effectively.","",109
+Projects,"1. Crisis Management Plan - Developed and implemented a crisis management plan that effectively handled a PR crisis.","",110
+Contact Info,"Email: victoriaclark@email.com, Phone: 345-678-9012","https://example.com/contacticon.png",111
+Footer,"Twitter: @victoriaclark, LinkedIn: linkedin.com/in/victoriaclark","https://example.com/socialmediaicon.png",112
+Header,Aaron Baker,"https://example.com/aaronbaker.jpg",113
+Personal Information,"Passionate Social Media Manager with expertise in social media strategy, content creation, and community engagement.","",114
+Education,"Bachelor's Degree in Marketing Communications, Communications College, 2014-2018","https://example.com/communicationscollegelogo.png",115
+Skills,"Social Media Strategy, Content Marketing, Community Management, Analytics, Influencer Marketing","https://example.com/skillsicon.png",116
+Experience,"Social Media Manager at Digital Agency, 2018-2021. Managed social media accounts and implemented successful campaigns.","",117
+Projects,"1. Influencer Collaboration - Orchestrated successful collaborations with influencers resulting in increased brand visibility.","",118
+Contact Info,"Email: aaronbaker@email.com, Phone: 456-789-0123","https://example.com/contacticon.png",119
+Footer,"Instagram: @aaronbaker, Blog: aaronblogs.com","https://example.com/socialmediaicon.png",120
+Header,Grace Young,"https://example.com/graceyoung.jpg",121
+Personal Information,"Detail-oriented Data Analyst with a strong analytical background and expertise in data visualization and interpretation.","",122
+Education,"Bachelor's Degree in Statistics, Statistics University, 2015-2019","https://example.com/statisticsuniversitylogo.png",123
+Skills,"Data Analysis, Data Visualization, SQL, Python, Machine Learning","https://example.com/skillsicon.png",124
+Experience,"Data Analyst at Tech Analytics Co., 2019-present. Analyzed data to provide actionable insights for business decision-making.","",125
+Projects,"1. Predictive Analytics Project - Developed a predictive analytics model that improved sales forecasting accuracy by 15%.","",126
+Contact Info,"Email: graceyoung@email.com, Phone: 567-890-1234","https://example.com/contacticon.png",127
+Footer,"GitHub: @graceyoung, LinkedIn: linkedin.com/in/graceyoung","https://example.com/githubicon.png",128
+Header,Daniel Green,"https://example.com/danielgreen.jpg",129
+Personal Information,"Results-driven Financial Analyst with expertise in financial modeling, budgeting, and risk analysis.","",130
+Education,"Master's Degree in Finance, Finance Institute, 2016-2018","https://example.com/financeinstitutelogo.png",131
+Skills,"Financial Modeling, Budget Analysis, Risk Management, Investment Analysis, Excel","https://example.com/skillsicon.png",132
+Experience,"Financial Analyst at Financial Services Co., 2018-2021. Conducted financial analysis and provided recommendations for investment decisions.","",133
+Projects,"1. Investment Portfolio Analysis - Analyzed and optimized investment portfolios for clients, resulting in increased returns.","",134
+Contact Info,"Email: danielgreen@email.com, Phone: 678-901-2345","https://example.com/contacticon.png",135
+Footer,"LinkedIn: linkedin.com/in/danielgreen","https://example.com/linkedinicon.png",136
+Header,Sophia Baker,"https://example.com/sophiabaker.jpg",137
+Personal Information,"Creative UX Researcher with a passion for understanding user behavior and translating insights into innovative designs.","",138
+Education,"Bachelor's Degree in Psychology, Psychology College, 2014-2018","https://example.com/psychologycollegelogo.png",139
+Skills,"User Research, Usability Testing, Persona Development, Information Architecture, Qualitative Analysis","https://example.com/skillsicon.png",140
+Experience,"UX Researcher at Tech Innovations, 2018-present. Conducted user research to inform design decisions and improve user experiences.","",141
+Projects,"1. Usability Study - Conducted a usability study that led to redesign improvements resulting in a 25% increase in user satisfaction.","",142
+Contact Info,"Email: sophiabaker@email.com, Phone: 789-012-3456","https://example.com/contacticon.png",143
+Footer,"Portfolio: sophiabakerportfolio.com","https://example.com/portfolioicon.png",144
+Header,Lucas King,"https://example.com/lucasking.jpg",145
+Personal Information,"Innovative UI Designer with a focus on creating visually appealing interfaces and enhancing user interactions.","",146
+Education,"Master's Degree in User Interface Design, Design Academy, 2016-2018","https://example.com/designacademylogo.png",147
+Skills,"UI Design, Visual Design, Interaction Design, Prototyping, User Interface Testing","https://example.com/skillsicon.png",148
+Experience,"UI Designer at Tech Solutions, 2018-2021. Designed user interfaces for web and mobile applications.","",149
+Projects,"1. Website Redesign - Led the redesign of a website that improved user engagement and conversion rates.","",

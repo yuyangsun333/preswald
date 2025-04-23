@@ -1,4 +1,25 @@
-name,value
-A,1
-B,2
-C,3
+Version,Date,Type,Description,Impact,Status
+1.0.0,2022-01-15,Feature,"Added new login functionality for users",Low,Implemented
+1.0.0,2022-01-15,Improvement,"Optimized database queries for faster performance",Medium,In Progress
+1.0.0,2022-01-15,Bug Fix,"Resolved issue causing crashes on iOS devices",High,Implemented
+1.0.1,2022-02-02,Feature,"Introduced dark mode option for better user experience",Medium,Planned
+1.0.1,2022-02-02,Improvement,"Enhanced search functionality with auto-suggestions",Low,Planned
+1.0.1,2022-02-02,Bug Fix,"Fixed alignment issue on product detail page",Low,In Progress
+1.0.2,2022-02-20,Feature,"Implemented multi-language support for international users",High,Implemented
+1.0.2,2022-02-20,Improvement,"Streamlined checkout process for faster transactions",Medium,Planned
+1.0.2,2022-02-20,Bug Fix,"Patched security vulnerability in user authentication",High,In Progress
+1.1.0,2022-03-10,Feature,"Added product recommendations based on user preferences",Medium,Planned
+1.1.0,2022-03-10,Improvement,"Updated UI design for a more modern look and feel",Low,Planned
+1.1.0,2022-03-10,Bug Fix,"Resolved issue with incorrect tax calculations at checkout",High,In Progress
+1.1.1,2022-03-28,Feature,"Integrated social media sharing buttons for products",Low,Planned
+1.1.1,2022-03-28,Improvement,"Implemented lazy loading for faster page loading times",Medium,Planned
+1.1.1,2022-03-28,Bug Fix,"Fixed broken links in the footer navigation",Low,In Progress
+1.1.2,2022-04-15,Feature,"Added support for Apple Pay and Google Pay",High,Planned
+1.1.2,2022-04-15,Improvement,"Optimized image loading for better performance on mobile devices",Medium,Planned
+1.1.2,2022-04-15,Bug Fix,"Resolved issue causing product images to load slowly",Medium,In Progress
+1.2.0,2022-05-05,Feature,"Introduced loyalty program for repeat customers",High,Planned
+1.2.0,2022-05-05,Improvement,"Enhanced product filtering options for easier navigation",Low,Planned
+1.2.0,2022-05-05,Bug Fix,"Fixed issue with incorrect order status updates",High,In Progress
+1.2.1,2022-05-25,Feature,"Implemented live chat support for customer inquiries",Medium,Planned
+1.2.1,2022-05-25,Improvement,"Upgraded server infrastructure for better scalability",High,Planned
+1.2.1,2022-05-25,Bug Fix,"Patched security vulnerability in payment processing",High,In Progress
