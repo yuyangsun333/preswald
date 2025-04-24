@@ -28,4 +28,3 @@ Endpoint,P50,P95,P99,Last Updated
 /reviews/delete,75,120,170,2022-09-15 15:00:00
 /cart/checkout,95,140,190,2022-09-15 15:15:00
 /shipping/estimate,105,160,220,2022-09-15 15:30:00
-...
