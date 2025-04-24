@@ -1,13 +1,107 @@
-from preswald import text, plotly, connect, get_df, table
+from preswald import (
+    Workflow, connect, get_df, text, table, plotly, selectbox,
+    slider, checkbox, separator
+)
 import pandas as pd
 import plotly.express as px
 
-text("# A/B Test Results Dashboard")
-text("Visualize and analyze A/B test results with statistical significance indicators.")
+workflow = Workflow()
 
-# Load the CSV
-connect()
-df = get_df('sample_csv')
+@workflow.atom()
+def init():
+    text("# 🧪 A/B Testing Dashboard")
+    text("Analyze A/B test results, compare conversion rates, evaluate statistical significance, and discover top-performing variants.")
+    connect()
 
-# Show the data
-table(df)
+@workflow.atom(dependencies=["init"])
+def load_data():
+    df = get_df("sample_csv").copy()
+    df["Conversion Rate"] = df["Conversion Rate"].str.replace('%', '', regex=False).astype(float)
+    df["Significance"] = df["Significance"].astype(str)
+    table(df, title="📋 Raw Data", limit=10)
+    return df
+
+@workflow.atom(dependencies=["load_data"])
+def filter_significant(load_data):
+    show_only = checkbox("Show only significant results?", default=False)
+    return load_data[load_data["Significance"].str.lower() == "yes"] if show_only else load_data
+
+@workflow.atom(dependencies=["filter_significant"])
+def variant_selector(filter_significant):
+    variants = filter_significant["Variant"].unique().tolist()
+    return selectbox("🎛️ Choose a Variant", options=variants, default=variants[0])
+
+@workflow.atom(dependencies=["filter_significant", "variant_selector"])
+def show_variant_table(filter_significant, variant_selector):
+    df = filter_significant[filter_significant["Variant"] == variant_selector].reset_index(drop=True).copy()
+    df["Test Number"] = df.index + 1
+    table(df, title=f"🔍 Details for {variant_selector}")
+    return df
+
+@workflow.atom(dependencies=["show_variant_table"])
+def plot_variant_trend(show_variant_table):
+    df = show_variant_table
+    text(f"## 📈 Conversion Trend: {df['Variant'].iloc[0]}")
+    fig = px.line(
+        df, x="Test Number", y="Conversion Rate", markers=True,
+        title="Conversion Rate Over Time", labels={"Conversion Rate": "Conversion Rate (%)"}
+    )
+    plotly(fig)
+
+@workflow.atom(dependencies=["filter_significant"])
+def conversion_lift_analysis(filter_significant):
+    text("## 🚀 Conversion Lift Compared to Control")
+
+    # Compute average CR per variant
+    summary = filter_significant.groupby("Variant").agg(
+        AvgCR=("Conversion Rate", "mean")
+    ).reset_index()
+
+    # Get control rate
+    control_rate = summary[summary["Variant"] == "Control"]["AvgCR"].values[0]
+
+    # Calculate lift
+    summary["Lift vs Control (%)"] = summary["AvgCR"] - control_rate
+
+    fig = px.bar(
+        summary, x="Variant", y="Lift vs Control (%)",
+        color="Lift vs Control (%)", color_continuous_scale="Viridis",
+        text="Lift vs Control (%)", title="Conversion Rate Lift (vs. Control)"
+    )
+    fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
+    plotly(fig)
+
+@workflow.atom(dependencies=["filter_significant"])
+def funnel_view(filter_significant):
+    text("## 🔄 Mini Funnel: Visitors → Conversions")
+    summary = filter_significant.groupby("Variant").agg({
+        "Visitors": "sum",
+        "Conversions": "sum"
+    }).reset_index()
+
+    fig = px.bar(
+        summary.melt(id_vars="Variant", value_vars=["Visitors", "Conversions"]),
+        x="Variant", y="value", color="variable", barmode="group",
+        title="Visitor vs Conversion Totals", text="value",
+        labels={"value": "Count", "variable": "Stage"}
+    )
+    plotly(fig)
+
+@workflow.atom(dependencies=["filter_significant"])
+def callout_best_variant(filter_significant):
+    summary = (
+        filter_significant.groupby("Variant")["Conversion Rate"]
+        .mean()
+        .reset_index()
+        .sort_values(by="Conversion Rate", ascending=False)
+    )
+    best = summary.iloc[0]
+    text(f"## 🏆 Best Variant: **{best['Variant']}**")
+    text(f"Achieved an average **{best['Conversion Rate']:.2f}%** conversion rate.")
+
+@workflow.atom()
+def wrap_up():
+    separator()
+    text("_This interactive dashboard is built with [Preswald](https://preswald.com), empowering anyone to build production dashboards in Python._")
+
+workflow.execute()
