@@ -28,7 +28,7 @@
 <a href="https://docs.preswald.com" target="_blank">
 <img src="https://img.shields.io/badge/Documentation-Read-green?style=for-the-badge" alt="Documentation">
 </a>
-<a href="https://app.preswald.com" target="_blank">
+<a href="https://preswald.com/dashboard" target="_blank">
 <img src="https://img.shields.io/badge/Cloud-Get Started-orange?style=for-the-badge" alt="Studio">
 </a>
 <a href="https://cal.com/amruthagujjar" target="_blank">
@@ -143,7 +143,7 @@ Open your browser, and voilà—your first Preswald app is live!
 
 ### **4. Deploy Your App to the Cloud**
 
-Preswald provides its own cloud platform for hosting and sharing your applications. You can authenticate with GitHub, create an organization, and generate an API key at [app.preswald.com](https://app.preswald.com). Once set up, deploying is as simple as running:  
+Preswald provides its own cloud platform for hosting and sharing your applications. You can authenticate with GitHub, create an organization, and generate an API key at [preswald.com](https://preswald.com). Once set up, deploying is as simple as running:  
 
 ```bash
 preswald deploy --target structured
