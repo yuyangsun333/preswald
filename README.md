@@ -4,7 +4,7 @@
 
 
 <p align="center">
-    <em>Create interactive data apps with a full data stack that runs in the browser (no local dependencies!),run offline, and are shareable in a single file.
+    <em>Create interactive data apps with a full data stack that runs in the browser (no local dependencies!),runs offline, and is shareable in a single file.
     </em>
 </p>
 <p align="center">
@@ -59,9 +59,6 @@ Preswald is especially useful when:
 - Reactive engine. Only re-run what's needed, powered by a DAG of dependencies
 - Local execution. No server. Runs offline, even with large data
 - AI-ready. Apps are fully inspectable and modifiable by agents
-
-<br>
-<br>
 
 ## Export as a Static App
 
@@ -162,11 +159,11 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 ## **Use Cases**
 
-- Analyst dashboards. Build data summaries and visualizations. Share as static sites.
-- Interactive reports. Deliver notebooks and reports that update live based on user input. 
-- Data inspection tools. Explore files, logs, or snapshots with quick, purpose-built UIs.
-- Offline kits. Package apps for fieldwork or secure / airgap settings.
-- Experiment panels. Compare runs, track metrics, and present results in standalone interactive apps.
+- Analyst dashboards. Build data summaries and visualizations. Share as static sites. [Example 1]() [Example 2]() [Example 3]()  
+- Interactive reports. Deliver notebooks and reports that update live based on user input. [Example 1]() [Example 2]() [Example 3]()  
+- Data inspection tools. Explore files, logs, or snapshots with quick, purpose-built UIs.[Example 1]() [Example 2]() [Example 3]()  
+- Offline kits. Package apps for fieldwork or secure / airgap settings. [Example 1]() [Example 2]() [Example 3]()  
+- Experiment panels. Compare runs, track metrics, and present results in standalone interactive apps. [Example 1]() [Example 2]() [Example 3]()  
 
 <br>
 
