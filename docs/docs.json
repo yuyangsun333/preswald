@@ -36,12 +36,6 @@
               "usage/examples",
               "usage/troubleshooting"
             ]
-          },
-          {
-            "group": "Contributing",
-            "pages": [
-              "addnewcomponent"
-            ]
           }
         ]
       },
@@ -49,48 +43,58 @@
         "tab": "SDK Reference",
         "groups": [
           {
+            "group": "Displays",
+            "pages": [
+              "displays/text",
+              "displays/table",
+              "displays/matplotlib",
+              "displays/plotly",
+              "displays/image"
+            ]
+          },
+          {
+            "group": "Controls",
+            "pages": [
+              "controls/slider",
+              "controls/selectbox",
+              "controls/checkbox",
+              "controls/text_input"
+            ]
+          },
+          {
             "group": "Data",
             "pages": [
-              "sdk/get_df",
-              "sdk/query"
-            ]
-          },
-          {
-            "group": "Workflow",
-            "pages": [
-              "sdk/retrypolicy",
-              "sdk/workflow",
-              "sdk/workflow_analyzer"
-            ]
-          },
-          {
-            "group": "Components",
-            "pages": [
-              "sdk/alert",
-              "sdk/button",
-              "sdk/checkbox",
-              "sdk/chat",
-              "sdk/image",
-              "sdk/matplotlib",
-              "sdk/playground",
-              "sdk/plotly",
-              "sdk/progress",
-              "sdk/selectbox",
-              "sdk/separator",
-              "sdk/sidebar",
-              "sdk/slider",
-              "sdk/spinner",
-              "sdk/table",
-              "sdk/text",
-              "sdk/text_input",
-              "sdk/topbar",
-              "sdk/workflow_dag"
+              "data/get_df",
+              "data/query"
             ]
           },
           {
             "group": "Layout",
             "pages": [
-              "layout/guide"
+              "layout/sidebar",
+              "layout/topbar",
+              "layout/sizing"
+            ]
+          },
+          {
+            "group": "Workflow",
+            "pages": [
+              "workflow/retrypolicy",
+              "workflow/workflow",
+              "workflow/workflow_analyzer",
+              "workflow/workflow_dag"
+            ]
+          },
+          {
+            "group": "Deprecated",
+            "pages": [
+              "deprecated/alert",
+              "deprecated/button",
+              "deprecated/chat",
+              "deprecated/playground",
+              "deprecated/progress",
+              "deprecated/separator",
+              "deprecated/spinner"
             ]
           }
         ]
