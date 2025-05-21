@@ -53,7 +53,7 @@ class PreswaldWorker {
       await this.pyodide.runPythonAsync(`
                 import micropip
                 await micropip.install('duckdb')
-                await micropip.install('preswald==0.1.54')
+                await micropip.install('preswald')
                 # await micropip.install("http://localhost:8000/preswald-0.1.54-py3-none-any.whl")
             `);
 
