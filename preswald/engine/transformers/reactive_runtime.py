@@ -1,14 +1,32 @@
 import ast
+import inspect
 import copy
 import logging
+import textwrap
 from collections import defaultdict
 
 from preswald.interfaces import components
+from preswald.interfaces.render.registry import (
+    build_component_return_from_value,
+    get_output_stream_calls,
+    get_component_type_for_mimetype,
+    get_return_renderers,
+    get_display_methods,
+    get_display_renderers,
+    get_display_dependency_resolvers,
+    get_display_detectors,
+    get_tuple_return_types,
+    register_return_renderer,
+    register_output_stream_function,
+    register_display_method,
+    register_mimetype_component_type,
+    register_display_dependency_resolver,
+)
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
     generate_stable_id,
 )
-
+from preswald.engine.transformers.frame_context import FrameContext as Frame
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +59,40 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self.dependencies = {}
         self.known_components = self._discover_known_components()
         self._all_function_defs = []
+        self._blackbox_lifted_functions: set[str] = set()
 
+        self._frames: list[Frame] = []
         self.atoms = []
-        self.generated_atoms = []
-        self.variable_to_atom = {}
         self._used_linenos = set()
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
-        self.tuple_returning_atoms: set[str] = set()
+        self._in_function_body = False
+        self.import_aliases = {}
+        self._module: ast.Module | None = None
+        self._used_display_renderer_fns: set[str] = set()
 
+    @property
+    def _current_frame(self) -> Frame:
+        return self._frames[-1]
+
+    @property
+    def _module_frame(self) -> Frame:
+        return self._frames[0]
 
     def _reset(self):
         self.current_function = None
         self.dependencies = {}
         self._all_function_defs = []
+        self._blackbox_lifted_functions: set[str] = set()
+
+        self._frames = [Frame()]
         self.atoms = []
-        self.generated_atoms = []
-        self.variable_to_atom = {}
         self._used_linenos = set()
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
+        self.known_components = self._discover_known_components()
+        self._in_function_body = False
+        self.import_aliases = {}
+        self._module: ast.Module | None = None
+        self._used_display_renderer_fns: set[str] = set()
 
     def _discover_known_components(self) -> set[str]:
         """
@@ -121,6 +155,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
         component_to_atom_name = {}
 
         for stmt in body:
+            # Skip function bodies entirely
+            if isinstance(stmt, ast.FunctionDef):
+                logger.info(f'[DEBUG] skipping _generate_component_metadata for {stmt.name=}')
+                continue
+
             call_node = stmt.value if isinstance(stmt, ast.Expr) else getattr(stmt, "value", None)
 
             if isinstance(call_node, ast.Call) and isinstance(call_node.func, ast.Name):
@@ -153,7 +192,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         """
         for target in stmt.targets:
             if isinstance(target, ast.Name):
-                self.variable_to_atom[target.id] = atom_name
+                self._current_frame.variable_to_atom[target.id] = atom_name
                 logger.debug(f"[AST] bound variable to atom {target.id=} {atom_name=}")
 
     def _uses_known_atoms(self, stmt: ast.stmt, variable_map: dict[str, str] | None = None) -> bool:
@@ -162,8 +201,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         This method checks whether the given AST statement references any variable
         that maps to an existing atom. This is used to determine whether a statement
-        should be lifted into a reactive atom (e.g., consumer expressions or augmented
-        assignments with reactive inputs).
+        should be lifted into a reactive atom, such as consumer expressions or augmented
+        assignments with reactive inputs.
 
         Args:
             stmt (ast.stmt): The statement to inspect.
@@ -173,7 +212,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             bool: True if the statement depends on one or more atoms.
         """
-        variable_map = variable_map or self.variable_to_atom
+        variable_map = variable_map or self._current_frame.variable_to_atom
 
         class AtomUsageVisitor(ast.NodeVisitor):
             def __init__(self, variable_map: dict[str, str]):
@@ -235,6 +274,58 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return unique_callsite_deps, dep_names
 
+    def _finalize_atom_deps(self, func: ast.FunctionDef) -> None:
+        atom_name = func.name
+        if not atom_name:
+            return
+
+        for deco in func.decorator_list:
+            if (
+                isinstance(deco, ast.Call)
+                and isinstance(deco.func, ast.Attribute)
+                and deco.func.attr == "atom"
+            ):
+                for kw in deco.keywords:
+                    if kw.arg == "dependencies" and isinstance(kw.value, ast.List):
+                        extracted = {
+                            elt.value
+                            for elt in kw.value.elts
+                            if isinstance(elt, ast.Constant)
+                        }
+                        self.dependencies[atom_name] = extracted
+                        return
+
+                deps = self.dependencies.get(atom_name)
+                if deps:
+                    logger.info(f"[PATCH] Finalizing dependencies for {atom_name}: {sorted(deps)}")
+                    deco.keywords.append(ast.keyword(
+                        arg="dependencies",
+                        value=ast.List(
+                            elts=[ast.Constant(value=dep) for dep in sorted(deps)],
+                            ctx=ast.Load()
+                        )
+                    ))
+                break
+
+    def _finalize_and_register_atom(
+        self,
+        atom_name: str,
+        component_id: str,
+        callsite_deps: list[str],
+        call_expr: ast.AST | list[ast.stmt]
+    ) -> ast.FunctionDef:
+        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr)
+        self._finalize_atom_deps(func)
+        self._current_frame.generated_atoms.append(func)
+        return func
+
+    def _should_inline_function(self, func_name: str) -> bool:
+        """
+        Determines whether a user-defined function should be inlined into the callsite.
+        For now, always returns False to fall back to blackbox lifting.
+        """
+        return False
+
     def _lift_augassign_stmt(self, stmt: ast.AugAssign) -> None:
         """
         Lifts an augmented assignment statement (e.g. `counter += val`) into a reactive atom function.
@@ -260,7 +351,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         return ast.Name(id=mapped, ctx=ast.Load())
                 return node
 
-        scoped_map = {**self.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
         target = stmt.target
 
         if not isinstance(target, ast.Name):
@@ -289,9 +380,131 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         # Register variable binding and lift the new assign into an atom
         self._register_variable_bindings(assign_stmt, atom_name)
-        self.variable_to_atom[target.id] = atom_name
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr=assign_stmt)
-        self.generated_atoms.append(func)
+        self._current_frame.variable_to_atom[target.id] = atom_name
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, assign_stmt)
+
+    def _lift_output_stream_stmt(self, stmt: ast.Expr, component_id: str, atom_name: str, stream: str) -> None:
+        """
+        Lifts a function call that writes to a stream (like print()) into a reactive atom function.
+        After execution, the stream's contents can be captured and rendered as output.
+        """
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        callsite_deps, dep_names = self._find_unique_dependencies(stmt.value, scoped_map)
+
+        param_mapping = self._make_param_mapping(callsite_deps)
+        patched_expr = self._replace_dep_args(stmt.value, param_mapping)
+
+        source = textwrap.dedent(f"""
+            from contextlib import redirect_stdout
+            from io import StringIO
+            from preswald.interfaces.render.registry import build_component_return_from_value
+            _stdout_capture = StringIO()
+            with redirect_stdout(_stdout_capture):
+                {ast.unparse(patched_expr)}
+            _stdout_value = _stdout_capture.getvalue()
+            stdout_value = _stdout_capture.getvalue()
+            return build_component_return_from_value(stdout_value, mimetype="text/plain", component_id="{component_id}")
+        """)
+
+        call_and_return = ast.parse(source).body
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, call_and_return)
+
+    def _lift_return_renderable_call(
+        self,
+        stmt: ast.stmt,
+        call_node: ast.Call,
+        component_id: str,
+        atom_name: str,
+        mimetype: str,
+    ) -> None:
+        """
+        Lifts a call like `df.head()` into an atom and wraps the result using `build_component_return_from_value`.
+
+        Args:
+            stmt: The original AST statement (Expr or Assign).
+            call_node: The ast.Call representing the df.head() or similar.
+            component_id: Stable component ID for frontend reconciliation.
+            atom_name: Unique atom name for the function.
+            mimetype: MIME type of the rendered output (e.g. "text/html")
+        """
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        callsite_deps, dep_names = self._find_unique_dependencies(call_node, scoped_map)
+        param_mapping = self._make_param_mapping(callsite_deps)
+
+        call_expr = self._replace_dep_args(call_node, param_mapping, scoped_map)
+
+        wrapped_call = ast.Call(
+            func=ast.Name(id="build_component_return_from_value", ctx=ast.Load()),
+            args=[call_expr],
+            keywords=[
+                ast.keyword(arg="mimetype", value=ast.Constant(value=mimetype)),
+                ast.keyword(arg="component_id", value=ast.Constant(value=component_id)),
+            ]
+        )
+
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped_call)
+
+    def _lift_blackbox_function_call(
+        self,
+        stmt: ast.Assign,
+        func_name: str,
+        scoped_map: dict[str, str],
+        variable_map: dict[str, str]
+    ) -> None:
+        logger.info(f'[DEBUG] enter _lift_blackbox_function_call')
+        component_id, atom_name = self.generate_component_and_atom_name(func_name)
+        callsite_deps, dep_names = self._find_unique_dependencies(stmt.value, scoped_map)
+        param_mapping = self._make_param_mapping(callsite_deps)
+
+        logger.info(f'[DEBUG] _lift_blackbox_function_call {component_id=}; {atom_name=}; {dep_names=}')
+
+        lhs = stmt.targets[0]
+        if not isinstance(lhs, (ast.Tuple, ast.List)):
+            raise ValueError("Expected tuple unpacking on left hand side of blackbox function call")
+
+        self._blackbox_lifted_functions.add(func_name)
+
+        # Register tuple returning behavior
+        self._current_frame.tuple_returning_atoms.add(atom_name)
+
+        # Register unpacked variables to this atom
+        for index, elt in enumerate(lhs.elts):
+            if isinstance(elt, ast.Name):
+                var = elt.id
+                variable_map[var] = atom_name
+                self._current_frame.tuple_variable_index[var] = index
+
+        self._current_frame.variable_to_atom.update(variable_map)
+
+        # Build: __preswald_result__ = pair(param0, param1, ...)
+        replaced_call = ast.Call(
+            func=ast.Name(id=func_name, ctx=ast.Load()),
+            args=[ast.Name(id=param_mapping[dep], ctx=ast.Load()) for dep in callsite_deps],
+            keywords=[]
+        )
+        temp_assign = ast.Assign(
+            targets=[ast.Name(id="__preswald_result__", ctx=ast.Store())],
+            value=replaced_call
+        )
+
+        # Build: (a, b) = __preswald_result__
+        unpack_assign = ast.Assign(
+            targets=[lhs],
+            value=ast.Name(id="__preswald_result__", ctx=ast.Load())
+        )
+
+        # Build: return (a, b)
+        return_stmt = ast.Return(value=ast.Tuple(
+            elts=[
+                ast.Name(id=elt.id, ctx=ast.Load())
+                for elt in lhs.elts if isinstance(elt, ast.Name)
+            ],
+            ctx=ast.Load()
+        ))
+
+        body = [temp_assign, unpack_assign, return_stmt]
+
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, body)
 
     def _lift_producer_stmt(self, stmt: ast.Assign, pending_assignments: list[ast.Assign], variable_map: dict[str, str]) -> None:
         """
@@ -322,11 +535,44 @@ class AutoAtomTransformer(ast.NodeTransformer):
             variable_map: The current scoped variable-to-atom mapping.
         """
         result_var = "__preswald_result__"
-        scoped_map = {**self.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+
+        # Check if this is a call to a user-defined function (for blackbox lifting fallback)
+        if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
+            func_name = stmt.value.func.id
+            if any(fn.name == func_name for fn in self._all_function_defs):
+                if not self._should_inline_function(func_name):
+                    logger.info(f"[AST] Falling back to blackbox lifting for call to user function: {func_name}")
+                    self._lift_blackbox_function_call(stmt, func_name, scoped_map, variable_map)
+                    return
+
+        logger.info(f"[AST] About to lift producer: {ast.dump(stmt)}")
+        logger.info(f"[AST] scoped_map={scoped_map}")
 
         if isinstance(stmt.targets[0], ast.Tuple | ast.List):
             component_id, atom_name = self.generate_component_and_atom_name("producer")
-            self.tuple_returning_atoms.add(atom_name)
+            self._current_frame.tuple_returning_atoms.add(atom_name)
+
+            unpacked_vars = [
+                elt.id for elt in stmt.targets[0].elts
+                if isinstance(elt, ast.Name)
+            ]
+            self._current_frame.tuple_unpacked_names[atom_name] = unpacked_vars
+
+            # Attempt to infer return type for the leftmost variable (assumed to be the primary return object)
+            if isinstance(stmt.value, ast.Call):
+                func = stmt.value.func
+                if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+                    module_name = func.value.id      # e.g. 'plt'
+                    attr_name = func.attr            # e.g. 'subplots'
+
+                    full_func_name = f"{module_name}.{attr_name}"
+                    known_tuple_returns = get_tuple_return_types()
+                    if full_func_name in known_tuple_returns:
+                        self._current_frame.atom_return_types[atom_name] = known_tuple_returns[full_func_name]
+                        logger.info(f"[AST] Inferred return type for {atom_name=}: {self._current_frame.atom_return_types[atom_name]}")
+                    else:
+                        logger.warning(f"[AST] Unable to Infer return type for {atom_name=}; {full_func_name=}; {known_tuple_returns=}")
 
             temp_assign = ast.Assign(
                 targets=[ast.Name(id=result_var, ctx=ast.Store())],
@@ -357,17 +603,41 @@ class AutoAtomTransformer(ast.NodeTransformer):
             body = [temp_assign, unpack_assign, return_stmt]
             callsite_deps, dep_names = self._find_unique_dependencies(ast.Module(body=body, type_ignores=[]), scoped_map)
             param_mapping = self._make_param_mapping(callsite_deps)
-            patched_expr = [self._replace_dep_args(stmt, param_mapping, variable_map) for stmt in body]
+            patched_expr = [
+                ast.Assign(
+                    targets=[ast.Name(id=result_var, ctx=ast.Store())],
+                    value=self._replace_dep_args(stmt.value, param_mapping)
+                ),
+                unpack_assign,
+                return_stmt,
+            ]
 
-            logger.debug(f"[AST] Lifted tuple unpacking producer: {atom_name=} {callsite_deps=}")
+            logger.info(f"[AST] Lifted tuple unpacking producer: {atom_name=} {callsite_deps=}")
 
-            for elt in stmt.targets[0].elts:
+            for index, elt in enumerate(stmt.targets[0].elts):
                 if isinstance(elt, ast.Name):
-                    variable_map[elt.id] = atom_name
+                    var = elt.id
+                    logger.info(f"[AST] tuple unpacking: {var=} index={index} atom={atom_name}")
+                    variable_map[var] = atom_name # ensures that while generating the function body (especially patched_expr in consumers), the variables get correctly replaced.
+                    self._current_frame.variable_to_atom[var] = atom_name # ensures future _uses_known_atoms and _find_dependencies see this binding.
+                    self._current_frame.tuple_variable_index[var] = index # tells the transformer where in the returned tuple each variable sits
 
         else:
             component_id, atom_name = self.generate_component_and_atom_name("producer")
             callsite_deps, dep_names = self._find_unique_dependencies(stmt.value, scoped_map)
+            logger.info(f"[AST] Lifted producer: {atom_name=} {callsite_deps=}")
+
+            # Track the return type if this is a call to a known constructor
+            # this is so that we can use this type to lookup registered renderables and lift them
+            if isinstance(stmt.value, ast.Call):
+                func = stmt.value.func
+                if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+                    module_name = func.value.id      # e.g. 'pd'
+                    attr_name = func.attr            # e.g. 'DataFrame'
+                    inferred_type = f"{module_name}.{attr_name}"
+                    self._current_frame.atom_return_types[atom_name] = inferred_type
+                    logger.info(f"[AST] Inferred return type for {atom_name=}: {inferred_type}")
+
             param_mapping = self._make_param_mapping(callsite_deps)
             patched_expr = ast.Assign(
                 targets=stmt.targets,
@@ -378,18 +648,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 if isinstance(target, ast.Name):
                     variable_map[target.id] = atom_name
 
-        self._register_variable_bindings(stmt, atom_name)
-        func = self._build_atom_function(
-            atom_name,
-            component_id,
-            callsite_deps,
-            call_expr=patched_expr
-        )
-        self.generated_atoms.append(func)
-        self.dependencies[atom_name] = set(callsite_deps)
-        self.variable_to_atom.update(variable_map)
+            self._register_variable_bindings(stmt, atom_name)
 
-    def _lift_consumer_stmt(self, stmt: ast.Expr) -> ast.Expr:
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
+        self._current_frame.variable_to_atom.update(variable_map)
+
+    def _lift_consumer_stmt(self, stmt: ast.Expr, *, component_id: str | None = None, atom_name: str | None = None) -> ast.Expr:
         """
         Lifts a consumer expression statement (e.g. `text(f"Hi {x}")`) into a reactive atom function.
 
@@ -417,10 +681,14 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 return node
 
 
-        scoped_map = {**self.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
         expr = stmt.value
         callsite_deps, dep_names = self._find_unique_dependencies(expr, variable_map=scoped_map)
-        component_id, atom_name = self.generate_component_and_atom_name("consumer")
+        component_id, atom_name = (
+            (component_id, atom_name)
+            if component_id and atom_name
+            else self.generate_component_and_atom_name("consumer")
+        )
 
         # Group variables by originating atom
         atom_to_vars: dict[str, list[str]] = defaultdict(list)
@@ -431,30 +699,194 @@ class AutoAtomTransformer(ast.NodeTransformer):
         reverse_map: dict[str, ast.expr] = {}
         for i, atom in enumerate(callsite_deps):
             param_name = f"param{i}"
-            for j, var in enumerate(atom_to_vars[atom]):
-                if atom not in self.tuple_returning_atoms:
+            for var in atom_to_vars[atom]:
+                if atom not in self._current_frame.tuple_returning_atoms:
                     reverse_map[var] = ast.Name(id=param_name, ctx=ast.Load())
                 else:
-                    reverse_map[var] = ast.Subscript(
-                        value=ast.Name(id=param_name, ctx=ast.Load()),
-                        slice=ast.Constant(value=j),
-                        ctx=ast.Load()
-                    )
+                    index = self._current_frame.tuple_variable_index.get(var)
+                    if index is not None:
+                        reverse_map[var] = ast.Subscript(
+                            value=ast.Name(id=param_name, ctx=ast.Load()),
+                            slice=ast.Constant(value=index),
+                            ctx=ast.Load()
+                        )
+                    else:
+                        logger.warning(f"[AST] Missing tuple index for var={var} from atom={atom}")
 
         patched_expr = TupleAwareReplacer().visit(copy.deepcopy(expr))
         ast.fix_missing_locations(patched_expr)
 
-        new_func = self._build_atom_function(atom_name, component_id, callsite_deps, patched_expr)
-        self.generated_atoms.append(new_func)
+        new_func = self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
 
         # Return the rewritten expression as a call to the generated atom
         callsite = self._make_callsite(atom_name, callsite_deps)
         return ast.Expr(value=callsite)
 
-    def _lift_top_level_statements( # noqa: C901
+    def _try_lift_display_renderer(
+            self, *, candidate: str, stmt: ast.stmt, component_id: str | None = None, dependencies: list[str] = None
+        ) -> bool:
+        logger.info(f"[DEBUG] Attempting to lift display renderer: {candidate=}, {component_id=}, {dependencies=}")
+
+        renderer_fn = get_display_renderers().get(candidate)
+        if not renderer_fn:
+            logger.warning(f"[DEBUG] No renderer function registered for: {candidate}")
+            return False
+
+        self._used_display_renderer_fns.add(renderer_fn.__name__)
+
+        if component_id is None:
+            component_id, atom_name = self.generate_component_and_atom_name(candidate)
+        else:
+            atom_name = generate_stable_atom_name_from_component_id(component_id)
+
+        logger.info(f'[DEBUG] in _try_lift_display_renderer component id and atom name generated for {renderer_fn.__name__=} {component_id=} {atom_name=}')
+
+        call_node = stmt.value if isinstance(stmt, ast.Expr) else stmt.value if isinstance(stmt, ast.Assign) else None
+        if not isinstance(call_node, ast.Call):
+            logger.warning(f"[DEBUG] Statement does not contain a valid call: {stmt}")
+            return False
+
+        # Inspect the renderer function to determine parameter names
+        sig = inspect.signature(renderer_fn)
+        renderer_args = []
+
+        #variable_map = self._get_variable_map_for_stmt(stmt)
+        variable_map = self._current_frame.variable_to_atom
+
+        receiver_node = getattr(call_node.func, "value", None)
+        callsite_deps = dependencies
+        if not callsite_deps:
+            callsite_deps, dep_names = (
+                self._find_dependencies(receiver_node, variable_map)
+                if receiver_node else ([], [])
+            )
+        param_mapping = self._make_param_mapping(callsite_deps)
+
+        renderer_args = []
+        for i, param in enumerate(sig.parameters.values()):
+            if param.name == "component_id":
+                continue
+
+            dep_atom = callsite_deps[i] if i < len(callsite_deps) else None
+            if dep_atom in self._current_frame.tuple_returning_atoms:
+                arg_expr = ast.Subscript(
+                    value=ast.Name(id=f"param{i}", ctx=ast.Load()),
+                    slice=ast.Constant(value=0),
+                    ctx=ast.Load(),
+                )
+                renderer_args.append(arg_expr)
+                logger.info(f"[LIFT] Injected subscripted tuple arg: param{i}[0] for {param.name=}")
+            else:
+                renderer_args.append(ast.Name(id=f"param{i}", ctx=ast.Load()))
+                logger.info(f"[LIFT] Injected standard arg: param{i} for {param.name=}")
+
+        # Build renderer(fig, component_id=...)
+        renderer_call = ast.Call(
+            func=ast.Name(id=renderer_fn.__name__, ctx=ast.Load()),
+            args=renderer_args,
+            keywords=[
+                ast.keyword(arg="component_id", value=ast.Constant(value=component_id))
+            ],
+        )
+
+        # Wrap in build_component_return_from_value(...)
+        # wrapped = ast.Call(
+        #     func=ast.Name(id="build_component_return_from_value", ctx=ast.Load()),
+        #     args=[
+        #         renderer_call,
+        #         ast.Constant(value="image/png"),
+        #     ],
+        #     keywords=[ast.keyword(arg="component_id", value=ast.Constant(value=component_id))],
+        # )
+
+        # self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped)
+
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, renderer_call)
+
+        #logger.info(f"[DEBUG] Replacing .show call with call to: {renderer_fn.__name__}({object_arg=}, {component_id=})")
+
+        return True
+
+    def _maybe_lift_display_renderer_from_expr(self, stmt: ast.Expr, call_node: ast.Call) -> bool:
+        logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {stmt=}; {call_node=}')
+        if not isinstance(call_node.func, ast.Attribute):
+            logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - returning because call_node.func is not an instance of attribute')
+            return False
+
+        attr = call_node.func.attr
+        receiver = call_node.func.value
+        varname = None
+
+        if isinstance(receiver, ast.Name):
+            varname = receiver.id
+        elif isinstance(receiver, ast.Subscript) and isinstance(receiver.value, ast.Name):
+            varname = receiver.value.id
+        else:
+            logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - returning receiver is not a Name or Subscript {receiver=}')
+
+            return False
+
+        logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {receiver=}; {attr=}; {varname=}')
+
+        # Try display method route
+        return_type = None
+        for cls, methods in get_display_methods().items():
+            if attr in methods:
+                atom_name = self._current_frame.variable_to_atom.get(varname)
+                if atom_name in self._current_frame.atom_return_types:
+                    return_types = self._current_frame.atom_return_types.get(atom_name)
+
+                    if isinstance(return_types, tuple):
+                        index_map = self._current_frame.tuple_unpacked_names.get(atom_name)
+                        if not index_map or varname not in index_map:
+                            logger.info(f"[DEBUG] Cannot determine index of varname='{varname}' in tuple for atom='{atom_name}'")
+                            return False
+                        return_type = return_types[index_map.index(varname)]
+                    else:
+                        return_type = return_types
+
+                    expected = f"{cls.__module__}.{cls.__name__}.{attr}"
+                    logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - try display route {atom_name=}; {return_type=}; {expected=}')
+                else:
+                    logger.warning(
+                        f"[AST] Could not determine the return type for variable '{varname}' "
+                        f"used in a display method '{attr}()'. "
+                        "If this variable comes from a function that returns multiple values, for example: `a, b = some_func()`, "
+                        "you must call `register_tuple_return('module.func', ('TypeA', 'TypeB'))` before that function call "
+                        "so we can track dependencies correctly."
+                    )
+
+        if return_type:
+            candidate = f"{return_type}.{attr}"
+        else:
+            candidate = f"{self.import_aliases.get(varname, varname)}.{attr}"
+
+        renderer = get_display_renderers().get(candidate)
+        if renderer:
+            atom_name = self._current_frame.variable_to_atom.get(varname)
+            if atom_name:
+                return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=[atom_name])
+            else:
+                logger.warning(f"[AST] Display renderer fallback: unknown dependency for varname={varname}")
+
+        # check detectors
+        for detector in get_display_detectors():
+            logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - applying detector to {call_node=}')
+            if detector(call_node):
+                candidate = f"{self.import_aliases.get(varname, varname)}.{attr}"
+                resolver = get_display_dependency_resolvers().get(candidate)
+                deps = resolver(self._current_frame) if resolver else []
+                logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - detected candidate {resolver=}; {candidate=}; {stmt=}; {deps=}')
+                return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=deps)
+
+        logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - nothing handled, returning False {candidate=}')
+
+        return False
+
+    def _lift_statements( # noqa: C901
         self,
         body: list[ast.stmt],
-        component_metadata: dict[int, tuple[str, str]],
+        component_metadata: dict[int, tuple[str, str]] | None = None,
     ) -> list[ast.stmt]:
         """
         Second pass over the module body to lift top-level reactive statements into atoms.
@@ -474,6 +906,21 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             A list of top level statements that are not lifted, to include in the rewritten module.
         """
+        logger.info(f"[DEBUG] Lifting statements inside function: {self.current_function.name if self.current_function else '<module>'}")
+        logger.info(f"[DEBUG] _lift_statements in {self.current_function.name if self.current_function else '<module>'}")
+
+        component_metadata = component_metadata or {}
+        return_renderers = {} if self._in_function_body else get_return_renderers()
+        output_stream_calls = {} if self._in_function_body else get_output_stream_calls()
+        display_methods = {} if self._in_function_body else get_display_methods()
+        display_renderers = {} if self._in_function_body else get_display_renderers()
+        dependency_resolvers = {} if self._in_function_body else get_display_dependency_resolvers()
+
+        stmt_variable_maps, _ = self._generate_stmt_variable_maps(body, component_metadata)
+
+        logger.info(f'[DEBUG] {return_renderers=} {output_stream_calls}')
+
+
         new_body = []
         pending_assignments = []
 
@@ -482,34 +929,149 @@ class AutoAtomTransformer(ast.NodeTransformer):
             if isinstance(stmt, ast.Import | ast.ImportFrom):
                 continue
 
+
+            logger.info(f"[DEBUG] variable_map for stmt: {stmt} -> {stmt_variable_maps.get(stmt)}")
+            logger.info(f"[DEBUG] Examining stmt: {ast.dump(stmt)}")
+
+            # Handle in script resolver registrations, such as register_display_dependency_resolver
+            if (
+                isinstance(stmt, ast.Expr)
+                and isinstance(stmt.value, ast.Call)
+                and isinstance(stmt.value.func, ast.Name)
+                and len(stmt.value.args) == 2
+                and isinstance(stmt.value.args[0], ast.Constant)
+            ):
+
+                if (stmt.value.func.id == "register_display_dependency_resolver"
+                    and isinstance(stmt.value.args[1], ast.Lambda)):
+
+                    func_name_node = stmt.value.args[0]
+                    resolver_node = stmt.value.args[1]
+
+                    try:
+                        func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
+                        lambda_code = ast.Expression(body=resolver_node)
+                        compiled = compile(lambda_code, filename="<resolver>", mode="eval")
+                        resolver_fn = eval(compiled, {"__builtins__": __builtins__})  # only eval the lambda
+                        register_display_dependency_resolver(func_name, resolver_fn)  # then call actual registrar
+                        logger.info(f"[AST] Registered display dependency resolver for {func_name=}")
+                    except Exception as e:
+                        logger.warning(f"[AST] Failed to register resolver: {e}")
+
+                    continue
+
+                elif (stmt.value.func.id == "register_tuple_return"
+                    and isinstance(stmt.value.args[1], ast.Tuple)):
+                    try:
+                        func_name = stmt.value.args[0].value
+                        return_types = tuple(elt.value for elt in stmt.value.args[1].elts if isinstance(elt, ast.Constant))
+                        from preswald.interfaces.render.registry import register_tuple_return
+                        register_tuple_return(func_name, return_types)
+                        logger.info(f"[AST] Registered tuple return: {func_name=} -> {return_types=}")
+                    except Exception as e:
+                        logger.warning(f"[AST] Failed to register tuple return: {e}")
+                    continue
+
             call_node = None
             if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
                 call_node = stmt.value
             elif isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
                 call_node = stmt.value
 
+
             # Handle known component calls via metadata
-            if call_node and isinstance(call_node.func, ast.Name):
-                func_name = call_node.func.id
+            if call_node:
+                logger.info(f'handing known compnent calls {display_methods.items()=}')
+                if isinstance(call_node.func, ast.Name):
+                    func_name = call_node.func.id
 
-                if func_name in self.known_components:
-                    component_id, atom_name = component_metadata.get(id(call_node), (None, None))
+                    if func_name in self.known_components:
+                        logger.info(f"[DEBUG] Attempting to lift known component call '{func_name}' inside {self.current_function.name if self.current_function else '<module>'}")
+                        component_id, atom_name = component_metadata.get(id(call_node), (None, None))
 
-                    if not atom_name:
-                        # Fallback path in case metadata was not precomputed
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f"[AST] Missing atom mapping for {func_name=}. Regenerating...")
+                        if not atom_name:
+                            # Fallback path in case metadata was not precomputed
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f"[AST] Missing atom mapping for {func_name=}. Regenerating...")
+                            component_id, atom_name = self.generate_component_and_atom_name(func_name)
+
+                        if self._uses_known_atoms(stmt):
+                            self._lift_consumer_stmt(stmt)
+                        else:
+                            self.lift_component_call_to_atom(call_node, component_id, atom_name)
+
+                        continue
+
+                    # Detect stream-based function (like print)
+                    elif func_name in output_stream_calls:
                         component_id, atom_name = self.generate_component_and_atom_name(func_name)
+                        self._lift_output_stream_stmt(stmt, component_id, atom_name, stream=output_stream_calls[func_name])
+                        continue
 
-                    if self._uses_known_atoms(stmt):
-                        self._lift_consumer_stmt(stmt)
-                    else:
-                        self.lift_component_call_to_atom(call_node, component_id, atom_name)
+                    elif isinstance(call_node.func, ast.Attribute):
+                        attr = call_node.func.attr
+                        receiver = call_node.func.value
+                        varname = None
 
-                    continue  # statement handled, skip to next
+                        # Accept both direct names and subscript patterns like param0[0]
+                        if isinstance(receiver, ast.Name):
+                            varname = receiver.id
+                        elif isinstance(receiver, ast.Subscript) and isinstance(receiver.value, ast.Name):
+                            varname = receiver.value.id
+                        else:
+                            logger.info(f"[DEBUG] Skipping .{attr} call with unsupported receiver: {ast.dump(receiver)}")
+
+                        full_func_name = f"{varname}.{attr}" if varname else attr
+
+                        # --- Return-renderer (e.g. df.to_html)
+                        if full_func_name in return_renderers:
+                            mimetype = return_renderers[full_func_name]["mimetype"]
+                            logger.info(f"[AST] Lifting return-renderable: {full_func_name=}; {mimetype=}")
+                            component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
+                            self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
+                            continue
+
+                logger.info(f"[AST] Checking attribute call for return-renderable: {ast.dump(call_node.func)}")
+
+                logger.info(f"[AST] import_aliases={self.import_aliases}")
+
+                # Handle return-renderable method based on inferred variable type
+                if isinstance(call_node.func, ast.Attribute) and isinstance(call_node.func.value, ast.Name):
+                    varname = call_node.func.value.id  # e.g. param0
+                    attr = call_node.func.attr         # e.g. to_html
+
+                    atom_name = self._current_frame.variable_to_atom.get(varname)
+                    logger.info(f"[AST] Lookup for variable: {varname=} -> {atom_name=}")
+                    if atom_name:
+                        return_type = self._current_frame.atom_return_types.get(atom_name)
+                        if return_type:
+                            canonical_type = self.import_aliases.get(return_type, return_type)
+                            candidate = f"{canonical_type}.{attr}"  # e.g. pandas.DataFrame.to_html
+
+                            # normalize candidate from import aliases
+                            if '.' in candidate:
+                                prefix, suffix = candidate.split('.', 1)
+                                prefix = self.import_aliases.get(prefix, prefix)
+                                candidate = f"{prefix}.{suffix}"
+
+                            logger.info(f"[AST] Trying candidate: {candidate=}, available renderers: {list(return_renderers.keys())}")
+
+                            if candidate in return_renderers:
+                                mimetype = return_renderers[candidate]["mimetype"]
+                                logger.info(f"[AST] Lifting return-renderable by type: {candidate=}; {mimetype=}")
+                                component_id, atom_name = self.generate_component_and_atom_name(candidate)
+                                self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
+                                continue
+
 
             # Handle expression consumers
             if isinstance(stmt, ast.Expr):
+                if isinstance(stmt.value, ast.Call):
+                    call_node = stmt.value
+                    if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
+                        continue
+
+                # Fallback: check if it's a consumer
                 if self._uses_known_atoms(stmt):
                     self._lift_consumer_stmt(stmt)
                 else:
@@ -517,13 +1079,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             # Handle producer assignments
             elif isinstance(stmt, ast.Assign):
-                variable_map = self._get_variable_map_for_stmt(stmt)
+                variable_map = stmt_variable_maps.get(stmt, self._current_frame.variable_to_atom)
                 if self._uses_known_atoms(stmt, variable_map):
                     self._lift_producer_stmt(stmt, pending_assignments, variable_map)
                 else:
                     # Fallback: check if any future statement uses this variable reactively
                     for future_stmt in body:
-                        if self._uses_known_atoms(future_stmt, {**variable_map, **self.variable_to_atom}):
+                        if self._uses_known_atoms(future_stmt, {**variable_map, **self._current_frame.variable_to_atom}):
                             self._lift_producer_stmt(stmt, pending_assignments, variable_map)
                             break
                     else:
@@ -594,24 +1156,29 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
     def _build_runtime_imports(self) -> list[ast.stmt]:
         """
-        Constructs the import statement required for runtime execution injection.
+        Constructs the import statements required for runtime execution injection.
 
-        Specifically, this returns:
-            from preswald import get_workflow
-
-        This import is required if the script does not already contain a call to
-        `workflow = get_workflow()` and `workflow.execute()`. see `_has_runtime_execution`.
-
-        Returns:
-            A list containing a single `ast.ImportFrom` node.
+        Includes:
+            - get_workflow()
+            - build_component_return_from_value()
+            - any display_renderers used (e.g. display_matplotlib_show)
         """
-        return [
+        imports = [
             ast.ImportFrom(
                 module="preswald",
                 names=[ast.alias(name="get_workflow", asname=None)],
                 level=0,
-            )
+            ),
+            ast.ImportFrom(
+                module="preswald.interfaces.render.registry",
+                names=[
+                    ast.alias(name="build_component_return_from_value", asname=None),
+                    *[ast.alias(name=fn_name, asname=None) for fn_name in sorted(self._used_display_renderer_fns)],
+                ],
+                level=0,
+            ),
         ]
+        return imports
 
     def _build_runtime_execution(self) -> list[ast.stmt]:
         """
@@ -651,6 +1218,69 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return [workflow_assign, workflow_execute]
 
+    def _statically_register_declarative_calls(self, stmts: list[ast.stmt]) -> None:
+        """
+        Scans the script for calls to known registry functions and applies them statically,
+        so they take effect before the transformation proceeds.
+
+        This enables user-defined registration of:
+          - register_return_renderer(...)
+          - register_output_stream_function(...)
+          - register_display_method(...)
+          - register_mimetype_component_type(...)
+        """
+
+        from preswald.interfaces.render.registry import (
+            register_return_renderer,
+            register_output_stream_function,
+            register_display_method,
+            register_mimetype_component_type,
+            get_component_type_for_mimetype,
+        )
+
+        known_registrars = {
+            "register_return_renderer": register_return_renderer,
+            "register_output_stream_function": register_output_stream_function,
+            "register_display_method": register_display_method,
+            "register_mimetype_component_type": register_mimetype_component_type,
+        }
+
+        for stmt in stmts:
+            if not isinstance(stmt, ast.Expr):
+                continue
+
+            call = stmt.value
+            if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name):
+                continue
+
+            func_name = call.func.id
+            if func_name not in known_registrars:
+                continue
+
+            try:
+                args = [ast.literal_eval(arg) for arg in call.args]
+                kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords if kw.arg}
+
+                if func_name == "register_return_renderer":
+                    mimetype = kwargs.get("mimetype")
+                    component_type = kwargs.get("component_type")
+
+                    # Automatically register component type for mimetype if missing
+                    if mimetype and not component_type:
+                        resolved = get_component_type_for_mimetype(mimetype)
+                        if not resolved:
+                            logger.info(
+                                f"[AST] No component registered for mimetype={mimetype!r}, defaulting to 'generic'"
+                            )
+                            register_mimetype_component_type(mimetype, component_type="generic")
+
+                registrar = known_registrars[func_name]
+                registrar(*args, **kwargs)
+                logger.info(f"[AST] Applied static registry call: {func_name}(*{args}, **{kwargs})")
+
+            except Exception as e:
+                logger.warning(f"[AST] Failed to statically evaluate {func_name} call: {e}")
+
     def visit_Module(self, node: ast.Module) -> ast.Module: # noqa: N802, C901
         """
         Entry point for AST transformation. Performs a structured two pass rewrite of the top level module body:
@@ -666,7 +1296,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._reset()
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("[AST] Starting module transformation {variable_to_atom=%s}", self.variable_to_atom)
+            logger.debug("[AST] Starting module transformation {variable_to_atom=%s}", self._current_frame.variable_to_atom)
         else:
             logger.info("[AST] Starting module transformation")
 
@@ -677,33 +1307,30 @@ class AutoAtomTransformer(ast.NodeTransformer):
         for stmt in node.body:
             if isinstance(stmt, ast.Import | ast.ImportFrom):
                 original_imports.append(stmt)
+            elif isinstance(stmt, ast.FunctionDef):
+                self._all_function_defs.append(stmt)
+                # Defer visiting the function until we know it's not blackbox lifted
+                non_import_stmts.append(stmt)
             else:
                 non_import_stmts.append(stmt)
 
-        # First pass: assign stable IDs to component calls and track variable to atom mapping
+        #
+        # First pass
+        #
+
+        # Detect return renderer registrations in user script
+        self._statically_register_declarative_calls(non_import_stmts)
+
+        # assign stable IDs to component calls and track variable to atom mapping
         component_to_atom_name = self._generate_component_metadata(node.body)
 
         # Initialize an empty variable map that will be updated per statement
-        full_variable_map = {}
-        variable_maps = []
-
-        for stmt in node.body:
-            variable_map = full_variable_map.copy()
-            if isinstance(stmt, ast.Assign):
-                for target in stmt.targets:
-                    if isinstance(target, ast.Name):
-                        call_node = stmt.value if isinstance(stmt.value, ast.Call) else None
-                        if call_node and id(call_node) in component_to_atom_name:
-                            _, atom_name = component_to_atom_name[id(call_node)]
-                            variable_map[target.id] = atom_name
-            variable_maps.append(variable_map)
-            full_variable_map.update(variable_map)
-
-        self.variable_to_atom = full_variable_map
-        self._stmt_variable_maps = dict(zip(node.body, variable_maps, strict=False))  # store per statement scope
+        self._current_frame.stmt_variable_maps, self._current_frame.variable_to_atom = self._generate_stmt_variable_maps(
+            node.body, component_metadata=component_to_atom_name
+        )
 
         logger.info(f"[AST] First pass complete {component_to_atom_name=}")
-        logger.info(f"[AST] Final variable-to-atom map {self.variable_to_atom=}")
+        logger.info(f"[AST] Final variable-to-atom map {self._current_frame.variable_to_atom=}")
 
         # Second pass: lift component calls into reactive atoms
 
@@ -745,16 +1372,39 @@ class AutoAtomTransformer(ast.NodeTransformer):
             filtered_stmts = non_import_stmts
             runtime_bootstrap_stmts = []
 
-        new_body = self._lift_top_level_statements(filtered_stmts, component_to_atom_name)
+        # import aliases used for renderable registry lookups
+        self.import_aliases = {}
+        for stmt in node.body:
+            if isinstance(stmt, ast.Import):
+                for alias in stmt.names:
+                    if alias.asname:
+                        self.import_aliases[alias.asname] = alias.name
+                    else:
+                        self.import_aliases[alias.name] = alias.name
+            elif isinstance(stmt, ast.ImportFrom):
+                if stmt.module and stmt.names:
+                    for alias in stmt.names:
+                        if alias.asname:
+                            self.import_aliases[alias.asname] = f"{stmt.module}.{alias.name}"
+                        else:
+                            self.import_aliases[alias.name] = f"{stmt.module}.{alias.name}"
+
+        new_body = self._lift_statements(filtered_stmts, component_to_atom_name)
+
+        # Now visit remaining FunctionDefs unless blackboxed
+        for stmt in non_import_stmts:
+            if isinstance(stmt, ast.FunctionDef):
+                if stmt.name not in self._blackbox_lifted_functions:
+                    self.visit(stmt)
 
         original_len = len(node.body)
-        new_len = len(self.generated_atoms + new_body)
+        new_len = len(self._current_frame.generated_atoms + new_body)
 
-        logger.info(f"[AST] Generated atom functions {len(self.generated_atoms)=}")
+        logger.info(f"[AST] Generated atom functions {len(self._current_frame.generated_atoms)=}")
         logger.info(f"[AST] Final module rewrite complete {original_len=} -> {new_len=}")
 
         logger.info("[AST] Final transformed module structure:")
-        for idx, stmt in enumerate(self.generated_atoms + new_body):
+        for idx, stmt in enumerate(self._current_frame.generated_atoms + new_body):
             match stmt:
                 case ast.FunctionDef():
                     logger.info(f"  [{idx}] FunctionDef {stmt.name}")
@@ -797,7 +1447,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         node.body = (
             original_imports +
             runtime_imports +
-            self.generated_atoms +
+            self._current_frame.generated_atoms +
             new_body +
             runtime_bootstrap_stmts +
             runtime_exec
@@ -806,7 +1456,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         logger.info("[AST] Inserted import statements for lifted atoms and workflow execution")
         return node
 
-    def _replace_dep_args(self, call: ast.AST, param_mapping: dict[str, str], variable_map: dict[str, str] | None = None) -> ast.AST:
+    def _replace_dep_args(
+        self,
+        call: ast.AST,
+        param_mapping: dict[str, str],
+        variable_map: dict[str, str] | None = None
+    ) -> ast.AST:
         """
         Rewrites variable references in an AST expression to use parameter names based on dependency mapping.
 
@@ -826,36 +1481,64 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             A transformed AST node with replaced references.
         """
-        variable_map = variable_map or self.variable_to_atom
+        variable_map = variable_map or self._current_frame.variable_to_atom
 
         class DependencyReplacer(ast.NodeTransformer):
-            def __init__(self, variable_to_atom: dict[str, str], param_mapping: dict[str, str]):
+            def __init__(
+                self,
+                variable_to_atom: dict[str, str],
+                param_mapping: dict[str, str],
+                tuple_returning_atoms: set[str],
+                tuple_variable_index: dict[str, int],
+            ):
                 self.variable_to_atom = variable_to_atom
                 self.param_mapping = param_mapping
+                self.tuple_returning_atoms = tuple_returning_atoms
+                self.tuple_variable_index = tuple_variable_index
 
-            def visit_Name(self, node: ast.Name) -> ast.AST: # noqa: N802
+            def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802
                 if not isinstance(node.ctx, ast.Load):
-                    return node  # Skip Store/Del contexts
+                    return node
 
-                atom = self.variable_to_atom.get(node.id)
-                mapped = self.param_mapping.get(atom)
+                var_name = node.id
+                atom = self.variable_to_atom.get(var_name)
+                param = self.param_mapping.get(atom)
 
-                if mapped:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("[AST] Replacing dependency %s -> %s (from atom=%s)", node.id, mapped, atom)
-                    return ast.Name(id=mapped, ctx=ast.Load())
+                if not atom or not param:
+                    return node
 
-                return node
+                if atom in self.tuple_returning_atoms:
+                    try:
+                        index = self.tuple_variable_index.get(var_name)
+                        if index is not None:
+                            return ast.Subscript(
+                                value=ast.Name(id=param, ctx=ast.Load()),
+                                slice=ast.Constant(value=index),
+                                ctx=ast.Load()
+                            )
+                        else:
+                            logger.warning(f"[AST] Could not find tuple index for var {var_name} from atom {atom}")
+                            return node
+                    except ValueError:
+                        logger.warning(f"[AST] Could not determine tuple index for {var_name=} from {atom=}")
+                        return node
+                else:
+                    return ast.Name(id=param, ctx=ast.Load())
 
-            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue: # noqa: N802
+            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue:  # noqa: N802
                 node.value = self.visit(node.value)
                 return node
 
-            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr: # noqa: N802
+            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr:  # noqa: N802
                 node.values = [self.visit(value) for value in node.values]
                 return node
 
-        return DependencyReplacer(variable_map, param_mapping).visit(call)
+        return DependencyReplacer(
+            variable_map,
+            param_mapping,
+            self._current_frame.tuple_returning_atoms,
+            self._current_frame.tuple_variable_index,
+        ).visit(call)
 
     def visit_Call(self, node: ast.Call) -> ast.AST: # noqa: N802
         """
@@ -893,40 +1576,40 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 caller_atom = getattr(self.current_function, "generated_atom_name", None)
                 if caller_atom and callee_atom:
                     self.dependencies.setdefault(caller_atom, set()).add(callee_atom)
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("[AST] Dependency tracked via function call: %s -> %s", caller_atom, callee_atom)
+                    if logger.isEnabledFor(logging.INFO):
+                        logger.info("[AST] Dependency tracked via function call: %s -> %s", caller_atom, callee_atom)
 
         # Case 3: Call to variable that references a lifted component
-        if func_name in self.variable_to_atom:
-            callee_atom = self.variable_to_atom[func_name]
+        if func_name in self._current_frame.variable_to_atom:
+            callee_atom = self._current_frame.variable_to_atom[func_name]
             caller_atom = getattr(self.current_function, "generated_atom_name", None)
             if caller_atom and callee_atom:
                 self.dependencies.setdefault(caller_atom, set()).add(callee_atom)
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("[AST] Dependency tracked via variable call: %s -> %s", caller_atom, callee_atom)
+                if logger.isEnabledFor(logging.INFO):
+                    logger.info("[AST] Dependency tracked via variable call: %s -> %s", caller_atom, callee_atom)
 
         return node
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef: # noqa: N802
-        """
-        Visits top level function definitions and lifts them into reactive atoms.
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        self._all_function_defs.append(node)
 
-        This transformation enables functions defined at module scope to participate in the
-        reactive DAG and automatically rerun when their dependencies change.
+        if not self._is_top_level(node) and not self._should_inline_function(node.name):
+            logger.info(f"[AST] Skipping transformation of function '{node.name}' (blackbox fallback)")
+            return node
 
-        If used in a reactive chain, the function will be:
-          - Decorated with `@workflow.atom(...)` and given a stable atom name
-          - Tracked in `self.atoms` and `self.dependencies` for DAG construction
-          - Injected with explicit `dependencies=[...]` if applicable
+        if node.name in self._blackbox_lifted_functions:
+            logger.info(f"[AST] Skipping visit to '{node.name}' because it was already blackbox lifted")
+            return node
 
-        Returns:
-            The potentially modified `FunctionDef` node.
-        """
-        # Detect top-level function and register it as an atom
+        # Only lift and traverse if it’s top level or should inline
+        self._in_function_body = True
+        prev_function = self.current_function
+        self.current_function = node
+
         if self._is_top_level(node):
+            # Attach atom decorator
             callsite_hint = f"{self.filename}:{getattr(node, 'lineno', 0)}"
             atom_name = generate_stable_id("_auto_atom", callsite_hint=callsite_hint)
-
             decorator = ast.Call(
                 func=ast.Attribute(
                     value=ast.Name(id="workflow", ctx=ast.Load()),
@@ -934,23 +1617,33 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     ctx=ast.Load(),
                 ),
                 args=[],
-                keywords=[ast.keyword(arg="name", value=ast.Constant(value=atom_name))]
+                keywords=[ast.keyword(arg="name", value=ast.Constant(value=atom_name))],
             )
-
             node.decorator_list.insert(0, decorator)
             node.generated_atom_name = atom_name
             self.atoms.append(atom_name)
 
-        # Register for dependency tracking
-        self._all_function_defs.append(node)
-        self.current_function = node
+        self._frames.append(Frame())
         self.generic_visit(node)
-        self.current_function = None
 
-        # Inject `dependencies=[...]` if any were recorded
+        component_metadata = self._generate_component_metadata(node.body)
+        self._current_frame.stmt_variable_maps, self._current_frame.variable_to_atom = self._generate_stmt_variable_maps(
+            node.body, component_metadata=component_metadata
+        )
+
+        node.body = self._lift_statements(node.body, component_metadata=component_metadata)
+
+        for atom in self._current_frame.generated_atoms:
+            logger.info(f"[DEBUG] Atom lifted inside function {node.name}: {atom.name}")
+
+        self._module_frame.generated_atoms.extend(self._current_frame.generated_atoms)
+        self._frames.pop()
+
+        self.current_function = prev_function
+        self._in_function_body = False
+
         atom_name = getattr(node, "generated_atom_name", None)
         deps = self.dependencies.get(atom_name)
-
         if atom_name and deps:
             for decorator in node.decorator_list:
                 if (
@@ -958,15 +1651,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     and isinstance(decorator.func, ast.Attribute)
                     and decorator.func.attr == "atom"
                 ):
-                    existing_keys = {kw.arg for kw in decorator.keywords}
-                    if "dependencies" not in existing_keys:
+                    if not any(kw.arg == "dependencies" for kw in decorator.keywords):
                         decorator.keywords.append(
                             ast.keyword(
                                 arg="dependencies",
-                                value=ast.List(
-                                    elts=[ast.Constant(value=dep) for dep in deps],
-                                    ctx=ast.Load()
-                                )
+                                value=ast.List(elts=[ast.Constant(value=dep) for dep in deps], ctx=ast.Load()),
                             )
                         )
 
@@ -980,7 +1669,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Given a statement, returns the variable-to-atom mapping in scope at its location.
         This respects shadowing by later reassignments.
         """
-        return self._stmt_variable_maps.get(stmt, self.variable_to_atom)
+        return self._current_frame.stmt_variable_maps.get(stmt, self._current_frame.variable_to_atom)
 
     def _find_dependencies(
         self, node: ast.AST, variable_map: dict[str, str] | None = None
@@ -999,7 +1688,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
           - Determine what parameters an atom function should accept
           - Wire the DAG based on usage of previously reactive values
         """
-        variable_map = variable_map or self.variable_to_atom
+        variable_map = variable_map or self._current_frame.variable_to_atom
         deps: list[str] = []
         dep_names: list[str] = []
 
@@ -1173,13 +1862,49 @@ class AutoAtomTransformer(ast.NodeTransformer):
         # Generate the atom function that wraps the patched call
         new_func = self._build_atom_function(atom_name, component_id, callsite_deps, patched_call)
 
-        self.generated_atoms.append(new_func)
+        self._current_frame.generated_atoms.append(new_func)
 
         # Register its dependencies for future rewrites
-        self.dependencies[atom_name] = callsite_deps
+        self.dependencies[atom_name] = set(callsite_deps)
 
         # Return a call to the new atom, passing in the original variable names
         return self._make_callsite(atom_name, dep_names)
+
+    def _generate_stmt_variable_maps(
+        self,
+        body: list[ast.stmt],
+        component_metadata: dict[int, tuple[str, str]] | None = None,
+    ) -> tuple[dict[ast.stmt, dict[str, str]], dict[str, str]]:
+        """
+        Computes per-statement variable-to-atom maps for a given list of statements.
+
+        Returns:
+            - A map of each statement to its scoped variable-to-atom map
+            - The final merged variable-to-atom map
+        """
+        component_metadata = component_metadata or {}
+        full_variable_map: dict[str, str] = {}
+        stmt_variable_maps: dict[ast.stmt, dict[str, str]] = {}
+
+        for stmt in body:
+            variable_map = full_variable_map.copy()
+
+            if isinstance(stmt, ast.Assign):
+                call_node = stmt.value if isinstance(stmt.value, ast.Call) else None
+                for target in stmt.targets:
+                    if isinstance(target, ast.Name):
+                        if (
+                            call_node and
+                            isinstance(call_node.func, ast.Name) and
+                            id(call_node) in component_metadata
+                        ):
+                            _, atom_name = component_metadata[id(call_node)]
+                            variable_map[target.id] = atom_name
+
+            stmt_variable_maps[stmt] = variable_map
+            full_variable_map.update(variable_map)
+
+        return stmt_variable_maps, full_variable_map
 
     def generate_component_and_atom_name(self, func_name: str) -> tuple[str, str]:
         """
@@ -1188,7 +1913,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Unlike other code paths that may use real source line numbers when available,
         this method always uses a synthetic callsite hint derived from the filename and
         an artificial line number counter. This ensures unique and deterministic naming
-        for inline calls discovered during traversal (e.g., inside `visit_Call` or fallback logic).
+        for inline calls discovered during traversal.
 
         Args:
             func_name: The name of the original component function
@@ -1201,7 +1926,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         component_id = generate_stable_id(func_name, callsite_hint=callsite_hint)
         atom_name = generate_stable_atom_name_from_component_id(component_id)
 
-        logger.debug(f"[AST] Generated stable names {func_name=} {callsite_hint=} {component_id=} {atom_name=}")
+        logger.info(f"[AST] Generated stable names {func_name=} {callsite_hint=} {component_id=} {atom_name=}")
         self._artificial_lineno += 1
         return component_id, atom_name
 
@@ -1254,5 +1979,8 @@ def transform_source(source: str, filename: str = "<script>") -> tuple[ast.Modul
     if logger.isEnabledFor(logging.DEBUG):
         source_code = ast.unparse(new_tree)
         logger.debug("Transformed source code:\n%s", source_code)
+
+    source_code = ast.unparse(new_tree)
+    logger.info("Transformed source code:\n%s", source_code)
 
     return new_tree, transformer.atoms
