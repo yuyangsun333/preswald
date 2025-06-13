@@ -23,7 +23,6 @@ from preswald.interfaces.render.registry import (
     register_output_stream_function,
     register_return_renderer,
 )
-from preswald.interfaces.render.error_registry import register_error
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
     generate_stable_id,
