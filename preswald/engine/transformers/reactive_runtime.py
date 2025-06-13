@@ -2732,7 +2732,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
             "callsite_hint": f"{filename}:{lineno}" if filename and lineno else None,
         }
 
-
 def annotate_parents(tree: ast.AST) -> ast.AST:
     """
     Annotates each AST node in the tree with a `.parent` attribute pointing to its parent node.
