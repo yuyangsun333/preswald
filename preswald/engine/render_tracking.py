@@ -68,6 +68,9 @@ def with_render_tracking(component_type: str):
                 logger.debug(f"[with_render_tracking] Generated component_id {component_id}:{atom_name}")
 
             service = PreswaldService.get_instance()
+            if service.is_render_tracking_suppressed:
+                return func(*args, **kwargs)
+
             if not service.is_reactivity_enabled:
                 result = func(*args, **kwargs)
 

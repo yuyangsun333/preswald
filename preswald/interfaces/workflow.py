@@ -18,6 +18,7 @@ from preswald.utils import get_user_code_callsite
 from preswald.interfaces.component_return import ComponentReturn
 from preswald.interfaces.tracked_value import TrackedValue
 from preswald.interfaces.render.error_registry import register_error
+from preswald.engine.transformers.transformer_utils import rebuild_component_from_source
 
 
 logger = logging.getLogger(__name__)
@@ -313,6 +314,7 @@ class Workflow:
                 force_recompute=force_recompute,
                 callsite_metadata=callsite_metadata or {},
             )
+
             self.atoms[atom_name] = atom
 
             logger.info(f"[DAG] Atom registration complete {atom_name=} -> {atom_deps=}")
@@ -597,9 +599,25 @@ class Workflow:
                     logger.warning(f"[DAG] Atom execution failed, retrying {atom.name=} {attempts=} delay={delay:.2f}")
                     time.sleep(delay)
                 else:
+                    component = None
+                    lifted_component_src = atom.callsite_metadata.get("lifted_component_src")
+                    if lifted_component_src:
+                        try:
+                            callsite_hint = atom.callsite_metadata.get("hint")
+                            component = rebuild_component_from_source(lifted_component_src, callsite_hint, force_render=True)
+                            component['error'] = str(e)
+                        except Exception as rebuild_error:
+                            logger.error(f"[DAG] Failed to rebuild component for {atom.name}: {rebuild_error=}")
+
+                            component = {
+                                "type": "unkown",
+                                "error": f"[Runtime Error] {str(e)}"
+                            }
+
                     return AtomResult(
                         status=AtomStatus.FAILED,
                         error=e,
+                        value=component,
                         attempts=attempts,
                         start_time=start_time,
                         end_time=current_time,
