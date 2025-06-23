@@ -346,12 +346,19 @@ class Workflow:
 
             logger.info(f"[DAG] Atoms to recompute {atoms_to_recompute=}")
 
+            failed_atoms: set[str] = set()
+
             for atom_name in execution_order:
                 if self._is_rerun and recompute_atoms and atom_name not in atoms_to_recompute:
                     logger.info(f"[DAG] Skipping atom (not affected) {atom_name=}")
                     continue
 
+                # Skip if any dependency failed
                 atom = self.atoms[atom_name]
+                if any(dep in failed_atoms for dep in atom.dependencies):
+                    logger.warning(f"[DAG] Skipping atom due to failed dependency {atom_name=}")
+                    continue
+
                 if atom_name in atoms_to_recompute:
                     atom.force_recompute = True
 
@@ -360,8 +367,8 @@ class Workflow:
                 atom.force_recompute = False
 
                 if result.status == AtomStatus.FAILED:
-                    logger.error(f"[DAG] Execution halted due to failure {atom_name=}")
-                    break
+                    logger.error(f"[DAG] Atom failed during execution {atom_name=}")
+                    failed_atoms.add(atom_name)
 
             return self.context.results
         finally:
@@ -397,6 +404,15 @@ class Workflow:
                 logger.info(f"[DAG] Component registered while atom was active self._current_atom={self._current_atom}")
         else:
             logger.warning(f"[DAG] Skipping producer registration for unknown atom {atom_name=}")
+
+    def _register_component_producer(self, atom: Atom, candidate: Any) -> None:
+        if self._service:
+            if isinstance(candidate, ComponentReturn):
+                self.register_component_producer(candidate.component['id'], atom.name)
+            elif isinstance(candidate, tuple):
+                for item in candidate:
+                    if isinstance(item, ComponentReturn):
+                        self.register_component_producer(item.component['id'], atom.name)
 
     def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
@@ -570,15 +586,7 @@ class Workflow:
 
                 result = atom.func(*args)
 
-                if self._service:
-                    if isinstance(result, ComponentReturn):
-                        logger.info('[DEBUG] - register_component_producer from workflow _execute_inner')
-                        self.register_component_producer(result.component_id, atom.name)
-                    elif isinstance(result, tuple):
-                        for item in result:
-                            if isinstance(item, ComponentReturn):
-                                logger.info('[DEBUG] - register_component_producer from workflow _execute_inner. result is tuple.')
-                                self.register_component_producer(item.component_id, atom.name)
+                self._register_component_producer(atom, result)
 
                 end_time = time.time()
                 atom_result = AtomResult(
@@ -604,8 +612,10 @@ class Workflow:
                     if lifted_component_src:
                         try:
                             callsite_hint = atom.callsite_metadata.get("hint")
-                            component = rebuild_component_from_source(lifted_component_src, callsite_hint, force_render=True)
-                            component['error'] = str(e)
+                            component_return = rebuild_component_from_source(lifted_component_src, callsite_hint, force_render=True)
+                            component_return.component['error'] = str(e)
+                            self._register_component_producer(atom, component_return)
+                            component = component_return.component
                         except Exception as rebuild_error:
                             logger.error(f"[DAG] Failed to rebuild component for {atom.name}: {rebuild_error=}")
 
