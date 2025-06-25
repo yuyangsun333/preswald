@@ -16,7 +16,7 @@ const ProgressWidget = ({ id, value = 0, label, error, className }) => {
       id={id}
       className={cn(
         'w-full space-y-2 relative',
-        error && 'border-destructive border-2 bg-red-50 rounded-md',
+        error && 'border-destructive border-2 bg-red-50 rounded-md pr-8',
         className
       )}
     >
