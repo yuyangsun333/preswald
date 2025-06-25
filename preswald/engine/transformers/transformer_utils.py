@@ -114,7 +114,11 @@ def build_component_from_args(name: str, args: list, kwargs: dict) -> ComponentR
         return result
 
     except Exception as e:
+        component_id = kwargs.get('component_id', None)
+        if not component_id:
+            component_id = generate_stable_id(prefix=name, callsite_hint=callsite_hint)
         return ComponentReturn(None, {
+            "id": component_id,
             "type": name,
             "error": f"[Rebuild Error] {e!s}"
         })
