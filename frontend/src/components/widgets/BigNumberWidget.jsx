@@ -18,8 +18,6 @@ const formatNumber = (num) => {
 const BigNumberCard = ({ id, label, value, delta, unit, error, className }) => {
   const deltaNumber = parseFloat(delta);
   const isPositive = deltaNumber >= 0;
-
-  console.log(`BigNumberCard ${id} ${label}`, {value, error})
   const displayDelta =
     typeof delta === 'string' ? delta : `${isPositive ? '+' : ''}${delta}${unit ?? ''}`;
 
