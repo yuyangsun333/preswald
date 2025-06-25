@@ -152,10 +152,9 @@ const MemoizedComponent = memo(
         return (
           <JSONViewerWidget
             key={componentKey}
+            {...props}
             data={component.data || component.value} // fallback if `data` isn't set
-            title={component.title}
             expanded={component.expanded !== false}
-            className={component.className}
             id={componentId}
           />
         );

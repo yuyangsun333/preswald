@@ -1,5 +1,6 @@
 import ast
 import logging
+import collections.abc
 from typing import Any
 
 from preswald.interfaces.component_return import ComponentReturn
@@ -117,11 +118,13 @@ def build_component_from_args(name: str, args: list, kwargs: dict) -> ComponentR
         component_id = kwargs.get('component_id', None)
         if not component_id:
             component_id = generate_stable_id(prefix=name, callsite_hint=callsite_hint)
-        return ComponentReturn(None, {
+        component = {
             "id": component_id,
             "type": name,
             "error": f"[Rebuild Error] {e!s}"
-        })
+        }
+        component.update(_filter_kwargs_for_fallback(kwargs))
+        return ComponentReturn(None, component)
 
 
 def rebuild_component_from_source(
@@ -183,3 +186,9 @@ def rebuild_component_from_source(
         return component_return
 
     raise ValueError("Invalid lifted_component_src: unable to parse call expression.")
+
+def _safe_for_fallback(value):
+    return isinstance(value, (str, int, float, bool, type(None)))
+
+def _filter_kwargs_for_fallback(kwargs):
+    return {k: v for k, v in kwargs.items() if isinstance(k, str) and _safe_for_fallback(v)}
