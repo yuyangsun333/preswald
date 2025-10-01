@@ -6,6 +6,80 @@ import click
 
 from preswald.engine.telemetry import TelemetryService
 
+from pathlib import Path
+
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    _RICH = True
+    _CONSOLE = Console()
+except Exception:
+    _RICH = False
+    _CONSOLE = None
+
+def _human_bytes(n: int) -> str:
+    units = ["B", "KB", "MB", "GB", "TB"]
+    i = 0
+    x = float(n)
+    while x >= 1024 and i < len(units) - 1:
+        x /= 1024.0
+        i += 1
+    return f"{x:.1f} {units[i]}"
+
+def _dir_size_bytes(p: Path) -> int:
+    total = 0
+    if not p.exists():
+        return 0
+    for f in p.rglob("*"):
+        if f.is_file():
+            try:
+                total += f.stat().st_size
+            except Exception:
+                pass
+    return total
+
+def _render_deploy_summary(meta: dict, force_plain: bool = False) -> None:
+    """
+    Pretty-print a deploy/export summary.
+    meta keys (fill what you have): project, outdir, index, assets, size_bytes, elapsed
+    """
+    use_rich = _RICH and (not force_plain) and sys.stdout.isatty()
+
+    project = meta.get("project", "")
+    outdir = str(meta.get("outdir", ""))
+    index = str(meta.get("index", ""))
+    assets = str(meta.get("assets", ""))
+    size = _human_bytes(int(meta.get("size_bytes", 0)))
+    elapsed = meta.get("elapsed", None)
+    elapsed_str = f"{elapsed:.2f}s" if isinstance(elapsed, (int, float)) else (str(elapsed) if elapsed else "")
+
+    if use_rich:
+        _CONSOLE.rule("[bold]Preswald Deploy[/bold]")
+        tbl = Table(expand=True)
+        tbl.add_column("Item", no_wrap=True)
+        tbl.add_column("Value")
+        for k, v in [
+            ("Project", project),
+            ("Output Dir", outdir),
+            ("Index File", index),
+            ("Assets", assets),
+            ("Bundle Size", size),
+            ("Duration", elapsed_str),
+        ]:
+            if v:
+                tbl.add_row(k, v)
+        _CONSOLE.print(tbl)
+        _CONSOLE.print(Panel.fit("Deployed/Exported successfully", title="Status"))
+    else:
+        print("=" * 12 + " Preswald Deploy " + "=" * 12)
+        if project: print(f"Project     : {project}")
+        if outdir:  print(f"Output Dir  : {outdir}")
+        if index:   print(f"Index File  : {index}")
+        if assets:  print(f"Assets      : {assets}")
+        print(f"Bundle Size : {size}")
+        if elapsed_str: print(f"Duration    : {elapsed_str}")
+
 
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
@@ -480,6 +554,34 @@ def export(format, output, client):
 
 Note: The app needs to be served via HTTP server - opening index.html directly won't work.
 """)
+
+            # ---- Pretty summary right after success echo ----
+            outdir = Path(output_dir)
+            index_html = outdir / "index.html"
+            assets_dir = outdir / "assets"
+
+            # Try to read a friendly project name from config; fallback to folder name
+            project_name = ""
+            try:
+                project_name = (config.get("project", {}) or {}).get("name") or ""
+            except Exception:
+                project_name = ""
+            if not project_name:
+                project_name = Path.cwd().name
+
+            meta = {
+                "project": project_name,
+                "outdir": str(outdir.resolve()),
+                "index": str(index_html.resolve()) if index_html.exists() else "",
+                "assets": sum(1 for _ in assets_dir.rglob("*")) if assets_dir.exists() else 0,
+                "size_bytes": _dir_size_bytes(outdir),  # helper defined at top
+                "elapsed": None,  # add timing later if you measure it
+            }
+
+            print("[DEBUG] calling _render_deploy_summary")  # temporary probe
+            _render_deploy_summary(meta)
+
+
 
         except Exception as e:
             click.echo(f"❌ Export failed: {e!s}")
