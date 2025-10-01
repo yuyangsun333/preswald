@@ -1,12 +1,14 @@
 import os
 import sys
 import tempfile
+import pathlib
 
 import click
 
 from preswald.engine.telemetry import TelemetryService
 
 from pathlib import Path
+
 
 try:
     from rich.console import Console
@@ -556,6 +558,8 @@ Note: The app needs to be served via HTTP server - opening index.html directly w
 """)
 
             # ---- Pretty summary right after success echo ----
+            from pathlib import Path
+
             outdir = Path(output_dir)
             index_html = outdir / "index.html"
             assets_dir = outdir / "assets"
