@@ -1,26 +1,27 @@
 import os
 import sys
 import tempfile
-import pathlib
+from pathlib import Path
 
 import click
 
 from preswald.engine.telemetry import TelemetryService
 
-from pathlib import Path
-
-
+# --- Optional pretty output with Rich ---
 try:
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
+
     _RICH = True
     _CONSOLE = Console()
 except Exception:
     _RICH = False
     _CONSOLE = None
 
+
 def _human_bytes(n: int) -> str:
+    """Convert a byte count into a human-readable string."""
     units = ["B", "KB", "MB", "GB", "TB"]
     i = 0
     x = float(n)
@@ -29,58 +30,61 @@ def _human_bytes(n: int) -> str:
         i += 1
     return f"{x:.1f} {units[i]}"
 
-def _dir_size_bytes(p: Path) -> int:
-    total = 0
-    if not p.exists():
-        return 0
-    for f in p.rglob("*"):
-        if f.is_file():
-            try:
-                total += f.stat().st_size
-            except Exception:
-                pass
-    return total
 
 def _render_deploy_summary(meta: dict, force_plain: bool = False) -> None:
     """
     Pretty-print a deploy/export summary.
-    meta keys (fill what you have): project, outdir, index, assets, size_bytes, elapsed
+
+    meta keys (fill what you have):
+      - project, outdir, index, assets, size_bytes, elapsed
     """
     use_rich = _RICH and (not force_plain) and sys.stdout.isatty()
 
-    project = meta.get("project", "")
+    project = str(meta.get("project", ""))
     outdir = str(meta.get("outdir", ""))
     index = str(meta.get("index", ""))
     assets = str(meta.get("assets", ""))
     size = _human_bytes(int(meta.get("size_bytes", 0)))
     elapsed = meta.get("elapsed", None)
-    elapsed_str = f"{elapsed:.2f}s" if isinstance(elapsed, (int, float)) else (str(elapsed) if elapsed else "")
+    elapsed_str = (
+        f"{elapsed:.2f}s"
+        if isinstance(elapsed, (int, float))
+        else (str(elapsed) if elapsed else "")
+    )
 
     if use_rich:
         _CONSOLE.rule("[bold]Preswald Deploy[/bold]")
         tbl = Table(expand=True)
         tbl.add_column("Item", no_wrap=True)
         tbl.add_column("Value")
-        for k, v in [
+
+        rows = [
             ("Project", project),
             ("Output Dir", outdir),
             ("Index File", index),
             ("Assets", assets),
             ("Bundle Size", size),
             ("Duration", elapsed_str),
-        ]:
+        ]
+        for k, v in rows:
             if v:
                 tbl.add_row(k, v)
+
         _CONSOLE.print(tbl)
         _CONSOLE.print(Panel.fit("Deployed/Exported successfully", title="Status"))
     else:
         print("=" * 12 + " Preswald Deploy " + "=" * 12)
-        if project: print(f"Project     : {project}")
-        if outdir:  print(f"Output Dir  : {outdir}")
-        if index:   print(f"Index File  : {index}")
-        if assets:  print(f"Assets      : {assets}")
+        if project:
+            print(f"Project     : {project}")
+        if outdir:
+            print(f"Output Dir  : {outdir}")
+        if index:
+            print(f"Index File  : {index}")
+        if assets:
+            print(f"Assets      : {assets}")
         print(f"Bundle Size : {size}")
-        if elapsed_str: print(f"Duration    : {elapsed_str}")
+        if elapsed_str:
+            print(f"Duration    : {elapsed_str}")
 
 
 # Create a temporary directory for IPC
@@ -104,14 +108,14 @@ def _create_default_init_files(target_dir: str, project_slug: str):
     """Create default project files in the target directory using templates."""
     from importlib.resources import as_file, files
 
-    # Read and write hello.py from template
+    # hello.py
     with as_file(files("preswald").joinpath("templates/hello.py.template")) as path:
         with open(path) as f:
             hello_content = f.read()
         with open(os.path.join(target_dir, "hello.py"), "w") as f:
             f.write(hello_content)
 
-    # Read and write preswald.toml from template
+    # preswald.toml
     with as_file(
         files("preswald").joinpath("templates/preswald.toml.template")
     ) as path:
@@ -120,14 +124,15 @@ def _create_default_init_files(target_dir: str, project_slug: str):
         with open(os.path.join(target_dir, "preswald.toml"), "w") as f:
             f.write(toml_content)
 
-    # Read and write secrets.toml from template
+    # secrets.toml
     with as_file(files("preswald").joinpath("templates/secrets.toml.template")) as path:
         with open(path) as f:
             secrets_content = f.read()
         with open(os.path.join(target_dir, "secrets.toml"), "w") as f:
             f.write(secrets_content)
 
-    # Read and write sample.csv from template
+    # data/sample.csv
+    os.makedirs(os.path.join(target_dir, "data"), exist_ok=True)
     with as_file(files("preswald").joinpath("templates/sample.csv.template")) as path:
         with open(path) as f:
             sample_data = f.read()
@@ -143,6 +148,8 @@ def init(name):
     Creates a directory with basic project structure.
     """
     from preswald.utils import generate_slug
+    import shutil
+    from importlib.resources import as_file, files
 
     try:
         os.makedirs(name, exist_ok=True)
@@ -153,9 +160,6 @@ def init(name):
         project_slug = generate_slug(name)
 
         # Copy default branding files
-        import shutil
-        from importlib.resources import as_file, files
-
         with as_file(files("preswald").joinpath("static/favicon.ico")) as path:
             shutil.copy2(path, os.path.join(name, "images", "favicon.ico"))
 
@@ -209,7 +213,6 @@ def run(port, log_level, disable_new_tab):
         return
 
     import tomli
-
     from preswald.main import start_server
     from preswald.utils import configure_logging, read_port_from_config
 
@@ -255,7 +258,6 @@ def run(port, log_level, disable_new_tab):
             webbrowser.open(url)
 
         start_server(script=script, port=port)
-
     except Exception as e:
         click.echo(f"Error: {e}")
 
@@ -341,7 +343,8 @@ def deploy(script, target, port, log_level):
         # Deployment Success Message
         success_message = f"""
 
-        ===========================================================\n
+        ===========================================================
+
         🎉 Deployment successful! ✅
 
         🌐 Your app is live and running at:
@@ -525,17 +528,13 @@ def export(format, output, client):
     elif format == "html":
         # Create output directory
         output_dir = output or "preswald_export"
-        # os.makedirs(output_dir, exist_ok=True) # Handled by prepare_html_export
 
         click.echo(f"📦 Exporting '{script}' to HTML...")
 
         try:
-            from preswald.utils import (
-                prepare_html_export,  # Import the new utility function
-            )
+            from preswald.utils import prepare_html_export
 
-            # Call the centralized function for preparing HTML export files
-            # project_root_dir is "." because CLI operates from the current project directory
+            # Prepare HTML export (writes index.html, project_fs.json, assets/)
             prepare_html_export(
                 script_path=script,
                 output_dir=output_dir,
@@ -543,28 +542,25 @@ def export(format, output, client):
                 client_type=client,
             )
 
-            # The rest of the original logic specific to CLI (e.g. click.echo messages) remains.
-            # No need to duplicate fs_snapshot, static file copying, or index.html modification here.
-
-            click.echo(f"""
+            click.echo(
+                f"""
 ✨ Export complete! Your interactive HTML app is ready:
 
    📁 {output_dir}/
       ├── index.html           # The main HTML file
       ├── project_fs.json      # Your project files
-      └── assets/             # Required JavaScript and CSS
+      └── assets/              # Required JavaScript and CSS
 
 Note: The app needs to be served via HTTP server - opening index.html directly won't work.
-""")
+"""
+            )
 
             # ---- Pretty summary right after success echo ----
-            #from pathlib import Path
-
             outdir = Path(output_dir)
             index_html = outdir / "index.html"
             assets_dir = outdir / "assets"
 
-            # Try to read a friendly project name from config; fallback to folder name
+            # Friendly project name from config; fallback to folder name
             project_name = ""
             try:
                 project_name = (config.get("project", {}) or {}).get("name") or ""
@@ -577,15 +573,16 @@ Note: The app needs to be served via HTTP server - opening index.html directly w
                 "project": project_name,
                 "outdir": str(outdir.resolve()),
                 "index": str(index_html.resolve()) if index_html.exists() else "",
-                "assets": sum(1 for _ in assets_dir.rglob("*")) if assets_dir.exists() else 0,
-                "size_bytes": _dir_size_bytes(outdir),  # helper defined at top
-                "elapsed": None,  # add timing later if you measure it
+                "assets": sum(1 for _ in assets_dir.rglob("*"))
+                if assets_dir.exists()
+                else 0,
+                "size_bytes": sum(
+                    f.stat().st_size for f in outdir.rglob("*") if f.is_file()
+                ),
+                "elapsed": None,  # fill if you add timing later
             }
 
-            print("[DEBUG] calling _render_deploy_summary")  # temporary probe
             _render_deploy_summary(meta)
-
-
 
         except Exception as e:
             click.echo(f"❌ Export failed: {e!s}")

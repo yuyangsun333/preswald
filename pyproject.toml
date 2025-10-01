@@ -116,3 +116,7 @@ section-order = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.setuptools.package-data]
+"preswald" = ["static/**", "templates/**", "tutorial/**"]
+
